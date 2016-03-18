@@ -1,14 +1,45 @@
-#include <iostream>
+#include <vrg3d/VRG3D.h>
 #include "pointmanager.h"
 
-using namespace std;
+using namespace G3D;
 
-int main(int argc, char *argv[])
+class DinoApp : public VRApp
 {
-    cout << "Hello World!" << endl;
-    PointManager p;
-    cout << argv[1] << endl;
-    p.ReadFile(argv[1]);
-    p.Draw(NULL);
-    return 0;
+public:
+  DinoApp(std::string setup) : VRApp()
+  {
+    init(setup);
+    pm.ReadFile("DataFileTest.txt");
+  }
+
+  void doUserInput(Array<VRG3D::EventRef> &events)
+  {
+
+
+  }
+
+  void doGraphics(RenderDevice *rd)
+  {
+    rd->pushState();
+    pm.Draw(rd, 30);
+    rd->popState();
+
+  }
+protected:
+  PointManager pm;
+};
+
+int main(int argc, char **argv )
+{
+  std::string setup;
+  if (argc >= 2)
+  {
+    setup = std::string(argv[1]);
+  }
+
+
+  DinoApp *app = new DinoApp(setup);
+  app->run();
+  return 0;
+
 }

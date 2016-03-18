@@ -1,8 +1,11 @@
-#include "dummy.h"
+#include <vrg3d/VRG3D.h>
 #include <vector>
 
 #ifndef VRPOINT_H
 #define VRPOINT_H
+
+using namespace G3D;
+
 class VRPoint {
 
 public:

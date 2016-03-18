@@ -1,4 +1,8 @@
 #include "vrpoint.h"
+#include <stdio.h>
+
+using namespace G3D;
+
 VRPoint::VRPoint(int id)
 {
     m_id = id;
@@ -10,8 +14,10 @@ void VRPoint::Draw(RenderDevice *rd, int time)
         return;
         //Fail silently
     }
-    printf("Point is at %.3f, %.3f, %.3f.\n", positions[time].x, positions[time].y, positions[time].z);
-
+    Vector3 p = positions[time];
+   // printf("Drawing point at %f, %f, %f.\r", p.x, p.y, p.z);
+    Sphere s (p, 1e-4);
+    Draw::sphere(s, rd);
 
 
 }
