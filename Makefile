@@ -59,6 +59,10 @@ all: dino
 dino: obj/main.o obj/pointmanager.o obj/vrpoint.o obj/dummy.o
 	$(CPP) $(LDFLAGS) -o dino $^ $(LIB_DIRS) $(LIBS)
 
+dino-test: obj/oldmain.o obj/pointmanager.o obj/vrpoint.o obj/dummy.o
+	$(CPP) $(LDFLAGS) -o dino-test $^ $(LIB_DIRS) $(LIBS)
+
+
 
 
 #$(TARGET) : $(OBJS) 

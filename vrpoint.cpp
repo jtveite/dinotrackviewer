@@ -16,8 +16,9 @@ void VRPoint::Draw(RenderDevice *rd, int time)
     }
     Vector3 p = positions[time];
    // printf("Drawing point at %f, %f, %f.\r", p.x, p.y, p.z);
-    Sphere s (p, 1e-4);
-    Draw::sphere(s, rd);
+    //Sphere s (p, 1e-4);
+    //Draw::sphere(s, rd);
+    rd->sendVertex(p);
 
 
 }

@@ -36,10 +36,18 @@ void PointManager::ReadFile(std::string fileName)
 void PointManager::Draw(RenderDevice *rd, int time)
 {
     rd->pushState();
-    Matrix3 scale = Matrix3::fromDiagonal(Vector3(10, 10, 10));
+    Matrix3 scale = Matrix3::fromDiagonal(Vector3(20, 20, 20));
     rd->setObjectToWorldMatrix(CoordinateFrame(scale) * rd->objectToWorldMatrix());
     for(auto &point : points){
-        point.Draw(rd,time);
+    //    point.Draw(rd,time);
     }
+    //points[0].Draw(rd, time);
+
+    rd->beginPrimitive(PrimitiveType::POINTS);
+    for(int i = 0; i < points.size(); i++){
+        VRPoint point = points[i];
+        point.Draw(rd, time);
+    }
+    rd->endPrimitive();
     rd->popState();
 }
