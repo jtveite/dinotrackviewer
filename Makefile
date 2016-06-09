@@ -38,7 +38,7 @@ endif
 
 OBJDIR = obj
 
-SRCS = $(shell ls *.cpp)
+SRCS = $(shell ls *.cpp) vertex.h
 
 OBJS = $(SRCS:%.cpp=$(OBJDIR)/%.o)
 
@@ -56,13 +56,14 @@ LIBS = -Xlinker --start-group  -Xlinker -ldl  -Xlinker -lX11 -Xlinker \
 
 all: dino
 
-dino: obj/main.o obj/pointmanager.o obj/vrpoint.o obj/dummy.o
+dino: obj/main.o obj/pointmanager.o obj/vrpoint.o obj/dummy.o obj/shader.o
 	$(CPP) $(LDFLAGS) -o dino $^ $(LIB_DIRS) $(LIBS)
 
-dino-test: obj/oldmain.o obj/pointmanager.o obj/vrpoint.o obj/dummy.o
+dino-test: obj/testmain.o obj/pointmanager.o obj/vrpoint.o obj/dummy.o
 	$(CPP) $(LDFLAGS) -o dino-test $^ $(LIB_DIRS) $(LIBS)
 
-
+test: obj/testmain.o
+	$(CPP) $(LDFLAGS) -o test $^ $(LIB_DIRS) $(LIBS)
 
 
 #$(TARGET) : $(OBJS) 

@@ -28,26 +28,76 @@ void PointManager::ReadFile(std::string fileName)
             p.AddPoint(Vector3(x,y,z));
         }
         points.push_back(p);
-    //    printf("Reading line %d\r", linecount++);
     }
+    vb = VertexBuffer::create(points.size() * sizeof(Vertex));
 
-}
-
-void PointManager::Draw(RenderDevice *rd, int time)
-{
-    rd->pushState();
-    Matrix3 scale = Matrix3::fromDiagonal(Vector3(20, 20, 20));
-    rd->setObjectToWorldMatrix(CoordinateFrame(scale) * rd->objectToWorldMatrix());
-    for(auto &point : points){
-    //    point.Draw(rd,time);
-    }
-    //points[0].Draw(rd, time);
-
-    rd->beginPrimitive(PrimitiveType::POINTS);
+    Array<Vertex> pointArray;
     for(int i = 0; i < points.size(); i++){
         VRPoint point = points[i];
-        point.Draw(rd, time);
+        pointArray.append(point.Draw(0));
     }
-    rd->endPrimitive();
+    separateVertex(pointArray);
+    /*
+    vr = VertexRange(points.size() * sizeof(Vertex), vb);
+    position_range = VertexRange(posArray, vr, 0, sizeof(Vertex));
+    color_range = VertexRange(colArray, vr, sizeof(Vector3), sizeof(Vertex));
+    printf("Initial Array sizes: pos %d, col %d\n", posArray.size(), colArray.size());
+*/
+
+    //position_range = VertexRange(pointArray, vb);
+    
+    glGenBuffers(1, &buffer);
+    glGenVertexArrays(1, &vao);
+    s = MyShader("basic.vert", "basic.geom", "basic.frag");
+    s.checkErrors();
+}
+
+void PointManager::separateVertex(Array<Vertex> array){
+    posArray.clear();
+    colArray.clear();
+    for(int i = 0; i < array.size(); i++){
+        Vertex v = array[i];
+        posArray.append(v.position);
+        colArray.append(v.color);
+    }
+} 
+
+void PointManager::Draw(RenderDevice *rd, int time, Matrix4 mvp){
+    rd->pushState();
+    std::vector<Vertex> pointArray;
+    for(int i = 0; i < points.size(); i++){
+        VRPoint point = points[i];
+        pointArray.push_back(point.Draw(time));
+        //pointArray.append(Vector3(0, 0, i));
+    }
+    //separateVertex(pointArray);
+    rd->beginOpenGL();
+    s.bindShader();
+    s.setMatrix4("mvp", mvp);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER, pointArray.size() * sizeof(Vertex), pointArray.data(), GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(Vector4));
+    glDrawArrays(GL_POINTS, 0, pointArray.size());
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    s.unbindShader();
+    rd->endOpenGL();
+
+    /*
+    printf("Pos Array size: %d, col size: %d\n", posArray.size(), colArray.size());
+    printf("Vertex buffer has %d bytes free and %d allocated.\n", vb->freeSize(), vb->allocatedSize());
+    std::cout << std::endl;
+    vb->reset();
+    printf("Vertex buffer has %d bytes free and %d allocated.\n", vb->freeSize(), vb->allocatedSize());
+    std::cout << std::endl;
+    vr = VertexRange(points.size() * sizeof(Vertex), vb);
+    position_range = VertexRange(posArray, vr, 0, sizeof(Vertex));
+    color_range = VertexRange(colArray, vr, sizeof(Vector3), sizeof(Vertex));
+    printf("Vertex buffer has %d bytes free and %d allocated.\n", vb->freeSize(), vb->allocatedSize());
+    rd->setVertexAttribArray(0, position_range, false);
+    rd->setVertexAttribArray(1, color_range, false);
+    rd->sendSequentialIndices(PrimitiveType::POINTS, pointArray.size());*/
     rd->popState();
 }
