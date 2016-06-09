@@ -41,7 +41,7 @@ public:
     _shader = Shader::fromFiles("basic.vert", "basic.geom",  "basic.frag");
     _shader->args.set("time", t);
    
-    Matrix3 scale = Matrix3::fromDiagonal(Vector3(10, 10, 10));
+    Matrix3 scale = Matrix3::fromDiagonal(Vector3(20, 20, 20));
     CoordinateFrame scaleC (scale);
     CoordinateFrame rotate = CoordinateFrame::fromXYZYPRDegrees(
       1, 0, -7,

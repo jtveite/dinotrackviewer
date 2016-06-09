@@ -20,15 +20,23 @@ Vertex VRPoint::Draw(int time)
     //Draw::sphere(s, rd);
  
     //rd->sendVertex(p);
-    return Vertex(p, Vector4(1.0, 0.0, 0.0, 1.0));//, GetColor(time));
+    return Vertex(p, GetColor(time));
 }
 
+
+Vector4 interp(float val, float from, float to, Vector4 fromVal, Vector4 toVal)
+{
+  float d = (val - from) / (to - from);
+  return fromVal * d + toVal * (1.f - d);
+  
+}
 
 Vector4 getColorHorizontal(Vector3 pos)
 {
     float val = pos.y;
-    val *= 5;
-    return Vector4(val, val, val, val);
+    Vector4 backCol = Vector4(0, .6, 0, 1);
+    Vector4 frontCol = Vector4(.6, 0, 1, 1);
+    return interp(val, 0.069, 0.21, backCol, frontCol);
 }
 
 
