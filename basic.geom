@@ -1,6 +1,6 @@
 #version 150
 layout(points) in;
-layout(line_strip, max_vertices=128) out;
+layout(triangle_strip, max_vertices=128) out;
 in vec4 vertexColor[];
 
 
