@@ -24,13 +24,14 @@ private:
     VertexRange vr;
     VertexRange position_range;
     VertexRange color_range;
-
+    void computeLocations(int timesteps);
     void separateVertex(Array<Vertex> array);
     Array<Vector4> posArray;
     Array<Vector4> colArray;
     GLuint buffer;
     GLuint vao;
     MyShader s;
+    std::vector< std::vector<Vertex> > pointLocations;
 };
 
 #endif // POINTMANAGER_H

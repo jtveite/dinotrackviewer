@@ -31,12 +31,6 @@ void PointManager::ReadFile(std::string fileName)
     }
     vb = VertexBuffer::create(points.size() * sizeof(Vertex));
 
-    Array<Vertex> pointArray;
-    for(int i = 0; i < points.size(); i++){
-        VRPoint point = points[i];
-        pointArray.append(point.Draw(0));
-    }
-    separateVertex(pointArray);
     /*
     vr = VertexRange(points.size() * sizeof(Vertex), vb);
     position_range = VertexRange(posArray, vr, 0, sizeof(Vertex));
@@ -45,11 +39,24 @@ void PointManager::ReadFile(std::string fileName)
 */
 
     //position_range = VertexRange(pointArray, vb);
-    
+    computeLocations(50);
+    std::cout << std::endl;
     glGenBuffers(1, &buffer);
     glGenVertexArrays(1, &vao);
     s = MyShader("basic.vert", "basic.geom", "basic.frag");
     s.checkErrors();
+}
+
+void PointManager::computeLocations(int timesteps){
+  pointLocations.clear();
+  for(int i = 0; i < timesteps; i++){
+    std::vector<Vertex> pointArray;
+    for (int j = 0; j < points.size(); j++){
+      VRPoint point = points[j];
+      pointArray.push_back(point.Draw(i));
+    }
+    pointLocations.push_back(pointArray);
+  }
 }
 
 void PointManager::separateVertex(Array<Vertex> array){
@@ -63,13 +70,18 @@ void PointManager::separateVertex(Array<Vertex> array){
 } 
 
 void PointManager::Draw(RenderDevice *rd, int time, Matrix4 mvp){
+    clock_t startTime = clock();
     rd->pushState();
-    std::vector<Vertex> pointArray;
+   // std::vector<Vertex> pointArray;
+   // pointArray.reserve(points.size());
+   /*
     for(int i = 0; i < points.size(); i++){
         VRPoint point = points[i];
         pointArray.push_back(point.Draw(time));
         //pointArray.append(Vector3(0, 0, i));
-    }
+    }*/
+    std::vector<Vertex> pointArray = pointLocations[time];
+    //printf("Time after setting points: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
     //separateVertex(pointArray);
     rd->beginOpenGL();
     s.bindShader();
@@ -80,10 +92,12 @@ void PointManager::Draw(RenderDevice *rd, int time, Matrix4 mvp){
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(Vector4));
+    //printf("Time before draw call: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
     glDrawArrays(GL_POINTS, 0, pointArray.size());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     s.unbindShader();
     rd->endOpenGL();
+    //printf("Time end of frame: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
 
     /*
     printf("Pos Array size: %d, col size: %d\n", posArray.size(), colArray.size());
