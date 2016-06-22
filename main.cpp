@@ -2,12 +2,20 @@
 #include "pointmanager.h"
 #include "animationcontroller.h"
 
+
+#define PROFILING
+#undef PROFILING
+
+#ifdef PROFILING
+#include "gperftools/profiler.h"
+#endif
+
 using namespace G3D;
 
 class DinoApp : public VRApp
 {
 public:
-  DinoApp(std::string setup) : VRApp(),
+  DinoApp(std::string setup, std::string dataFile) : VRApp(),
   ac()
   {
     Log *dinolog = new Log("dino-log.txt");
@@ -15,9 +23,9 @@ public:
     _mouseToTracker = new MouseToTracker(getCamera(), 2);
     frameTime = clock();
 
-    pm.ReadFile("/users/jtveite/data/jtveite/slices-130.out");
+//    pm.ReadFile("/users/jtveite/data/jtveite/slices-130.out");
 //    pm.ReadFile("/users/jtveite/dinotrackviewer/test-data");
-    _shader = Shader::fromFiles("basic.vert",  "basic.frag");
+    pm.ReadFile(dataFile);
     Matrix3 scale = Matrix3::fromDiagonal(Vector3(20, 20, 20));
     CoordinateFrame scaleC (scale);
     CoordinateFrame rotate = CoordinateFrame::fromXYZYPRDegrees(
@@ -29,10 +37,18 @@ public:
 
     //std::cout << GL_NO_ERROR << ' ' << GL_INVALID_ENUM << ' ' << GL_INVALID_VALUE << ' ' << GL_INVALID_OPERATION << ' ' << GL_INVALID_FRAMEBUFFER_OPERATION << std::endl;
     //
-   
+    std::string profFile = "/users/jtveite/d/prof/profile-" + setup;
+#ifdef PROFILING
+    ProfilerStart(profFile.c_str());
+#endif
   }
 
-  virtual ~DinoApp() {}
+  virtual ~DinoApp() {
+#ifdef PROFILING
+    ProfilerFlush();
+    ProfilerStop();
+#endif
+  }
 
   //general skeleton of user input from demo app
   void doUserInput(Array<VRG3D::EventRef> &events)
@@ -77,6 +93,19 @@ public:
       else if (eventName == "B03_down"){
         ac.increaseSpeed();
       }
+      
+      else if (eventName == "B05_down"){
+        ac.stepBackward();
+      }
+      else if (eventName == "B06_down"){
+        ac.stepForward();
+      }
+      else if (eventName == "B07_down"){
+        ac.togglePlay();
+      }
+
+
+
       else if (beginsWith(eventName, "aimo")){}
       else if (eventName == "SynchedTime"){}
       else{
@@ -119,17 +148,12 @@ public:
       std::cout << "Flushing gl errors " << gl_error << std::endl;
     }
     float t = ac.getFrame();
-    _shader = Shader::fromFiles("basic.vert", "basic.geom",  "basic.frag");
-    _shader->args.set("time", t);
    
     rd->pushState();
     rd->setObjectToWorldMatrix(_owm);
     Matrix4 mvp = rd->invertYMatrix() * rd->modelViewProjectionMatrix();
     
-    _shader->args.set("mvp", mvp);
     //std::cout << t << std::endl;
-    rd->setShader(_shader);
-    //std::cout << _shader->messages();
     pm.Draw(rd, t, mvp);
     rd->popState();
 
@@ -148,7 +172,6 @@ public:
 
 protected:
   PointManager pm;
-  ShaderRef _shader;
   MouseToTrackerRef _mouseToTracker;
   CoordinateFrame _virtualToRoomSpace;
   CoordinateFrame _owm;
@@ -162,13 +185,21 @@ protected:
 int main(int argc, char **argv )
 {
   std::string setup;
+  std::string dataFile;
   if (argc >= 2)
   {
     setup = std::string(argv[1]);
   }
+  if(argc >= 3)
+  {
+    dataFile = std::string(argv[2]);
+  }
+  else{
+    dataFile = "/users/jtveite/data/jtveite/slices-61.out";
+  }
 
 
-  DinoApp *app = new DinoApp(setup);
+  DinoApp *app = new DinoApp(setup, dataFile);
   app->run();
   return 0;
 

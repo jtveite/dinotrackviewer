@@ -22,15 +22,17 @@ void AnimationController::setFrameCount(int numFrames){
 
 int AnimationController::getFrame(){
   using namespace std::chrono;
-  high_resolution_clock::time_point currentTime = high_resolution_clock::now();
-  duration<double> time_passed = duration_cast<duration<double>>(currentTime - startTime);
-  //printf("Time passed: %f\n", time_passed.count());
-  if (time_passed.count() > (1.0/speed)){
-    currFrame++;
-    startTime = currentTime;
-  }
-  if (currFrame >= frameCount){
-    currFrame = 0;
+  if (playing){
+    high_resolution_clock::time_point currentTime = high_resolution_clock::now();
+    duration<double> time_passed = duration_cast<duration<double>>(currentTime - startTime);
+    //printf("Time passed: %f\n", time_passed.count());
+    if (time_passed.count() > (1.0/speed)){
+      currFrame++;
+      startTime = currentTime;
+    }
+    if (currFrame >= frameCount){
+      currFrame = 0;
+    }
   }
   return currFrame;
 }
@@ -44,18 +46,47 @@ float AnimationController::getSpeed(){
   return speed;
 }
 
+
 void AnimationController::increaseSpeed(){
-  speed++;
+  speed *= speedMultiplier;
   ValidateSpeed();
 }
 
 void AnimationController::decreaseSpeed(){
-  speed--;
+  speed /= speedMultiplier;
   ValidateSpeed();
 }
 
 void AnimationController::ValidateSpeed(){
   if (speed <= 0){
     speed = 0.01;
+  }
+  printf("Animation speed is now %.2f.\n", speed);
+}
+
+void AnimationController::play(){
+  playing = true;
+}
+
+void AnimationController::pause(){
+  playing = false;
+}
+
+void AnimationController::togglePlay(){
+  playing = !playing;
+}
+
+void AnimationController::stepForward(){
+  currFrame++;
+  if (currFrame >= frameCount){
+    currFrame = 0;
+  }
+}
+
+
+void AnimationController::stepBackward(){
+  currFrame--;
+  if (currFrame < 0){
+    currFrame = frameCount - 1;
   }
 }

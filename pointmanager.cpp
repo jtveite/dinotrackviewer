@@ -40,11 +40,11 @@ void PointManager::ReadFile(std::string fileName)
 
     //position_range = VertexRange(pointArray, vb);
     computeLocations(50);
-    std::cout << std::endl;
     glGenBuffers(1, &buffer);
     glGenVertexArrays(1, &vao);
     s = MyShader("basic.vert", "basic.geom", "basic.frag");
     s.checkErrors();
+    //s.loadTexture("colormap.jpg");
 }
 
 void PointManager::computeLocations(int timesteps){
@@ -80,20 +80,20 @@ void PointManager::Draw(RenderDevice *rd, int time, Matrix4 mvp){
         pointArray.push_back(point.Draw(time));
         //pointArray.append(Vector3(0, 0, i));
     }*/
-    std::vector<Vertex> pointArray = pointLocations[time];
+    std::vector<Vertex> *pointArray = &pointLocations[time];
     //printf("Time after setting points: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
     //separateVertex(pointArray);
     rd->beginOpenGL();
     s.bindShader();
     s.setMatrix4("mvp", mvp);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, pointArray.size() * sizeof(Vertex), pointArray.data(), GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, pointArray->size() * sizeof(Vertex), pointArray->data(), GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(Vector4));
     //printf("Time before draw call: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
-    glDrawArrays(GL_POINTS, 0, pointArray.size());
+    glDrawArrays(GL_POINTS, 0, pointArray->size());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     s.unbindShader();
     rd->endOpenGL();

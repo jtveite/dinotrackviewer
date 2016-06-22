@@ -52,7 +52,8 @@ LIBS = -Xlinker --start-group  -Xlinker -ldl  -Xlinker -lX11 -Xlinker \
 	-lavutil  -Xlinker -lavformat  -Xlinker -lavcodec  -Xlinker -lGLG3D \
 	-Xlinker -lG3D -Xlinker -lGLU -Xlinker -lGL -Xlinker -lvrpn \
 	-Xlinker -lglut -Xlinker -lXmu $(SCALABLE_LIB) \
-	-Xlinker --end-group
+	-Xlinker --end-group \
+	-lprofiler
 
 all: dino
 
