@@ -8,7 +8,7 @@ VRPoint::VRPoint(int id)
     m_id = id;
 }
 
-Vertex VRPoint::Draw(int time)
+Vertex VRPoint::Draw(int time, Image3::Ref image)
 {
     if (time > positions.size()){
         return Vertex();
@@ -20,7 +20,7 @@ Vertex VRPoint::Draw(int time)
     //Draw::sphere(s, rd);
  
     //rd->sendVertex(p);
-    return Vertex(p, GetColor(time));
+    return Vertex(p, GetColor(time, image));
 }
 
 
@@ -30,6 +30,7 @@ Vector4 interp(float val, float from, float to, Vector4 fromVal, Vector4 toVal)
   return fromVal * d + toVal * (1.f - d);
   
 }
+
 
 Vector4 getColorHorizontal(Vector3 pos)
 {
@@ -46,13 +47,61 @@ Vector4 VRPoint::GetColorHorizontalPosition()
 
 }
 
-Vector4 VRPoint::GetColor(int time)
+float interpi(float val, float from, float to, int fromVal, int toVal)
 {
-   return GetColorHorizontalPosition(); 
+  float d = (val - from) / (to - from);
+  return  fromVal *  d + toVal * (1.f - d);
+}
+
+
+float bound(float x){
+  if (x < 0){
+    return 0;
+  }
+  else if (x > 511){
+    return 511;
+  }
+  else
+    return x;
+}
+
+Vector4 VRPoint::GetColor(int time, Image3::Ref image)
+{
+  Vector3 pos = positions[0];
+  float x = interpi(pos.x, 0, 0.22, 0, 512 - 1);
+  float y = interpi(pos.y, 0, 0.12, 0, 512 - 1);
+  float z = interpi(pos.z, -0.048, 0.076, 0, 512-1);
+  x = bound(x);
+  y = bound(y);
+  //printf("Pixel grabbing from %f,%f with coords %f,%f\n", x, y, pos.y, pos.x);
+  Color3 color = image->nearest(y,x);
+  return Vector4(Vector3(color), 1.0f);
+  // return GetColorHorizontalPosition(); 
 
 }
 
 void VRPoint::AddPoint(Vector3 point)
 {
     positions.push_back(point);
+}
+
+void VRPoint::DrawPathline(RenderDevice *rd)
+{
+  if (glGetError() != GL_NO_ERROR){
+    printf("bad at start\n");
+  }
+  rd->beginPrimitive(PrimitiveType::LINE_STRIP);
+  //printf("Drawing pathline with the first vertex at %f, %f, %f\n", positions[0].x, positions[0].y, positions[0].z);
+  for(int i = 0; i < positions.size(); i++){
+    rd->sendVertex(positions[i]);
+  }
+  rd->endPrimitive();
+  if (glGetError() != GL_NO_ERROR){
+    printf("bad at end\n");
+  }
+}
+
+float VRPoint::GetDistance(int time, Vector3 point)
+{
+  return (point - positions[time]).squaredMagnitude();
 }

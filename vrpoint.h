@@ -12,9 +12,13 @@ class VRPoint {
 
 public:
     VRPoint(int id);
-    Vertex Draw(int time);
+    Vertex Draw(int time, Image3::Ref image);
     void AddPoint(Vector3 point);
-    Vector4 GetColor(int time);
+    Vector4 GetColor(int time, Image3::Ref image);
+
+    void DrawPathline(RenderDevice *rd);
+
+    float GetDistance(int time, Vector3 point);
 private:
     Vector4 GetColorHorizontalPosition();
     std::vector<Vector3> positions;

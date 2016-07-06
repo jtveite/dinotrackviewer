@@ -17,9 +17,12 @@ public:
     PointManager();
     void ReadFile(std::string fileName);
     void Draw(RenderDevice *rd, int time, Matrix4 mvp);
+    void AddPathline(Vector3 pos, int time);
 
 private:
     std::vector<VRPoint> points;
+    int numFramesSeen;
+    std::vector<int> pathlines;
     VertexBufferRef vb;
     VertexRange vr;
     VertexRange position_range;
@@ -32,6 +35,7 @@ private:
     GLuint vao;
     MyShader s;
     std::vector< std::vector<Vertex> > pointLocations;
+    Image3::Ref colorTexture;
 };
 
 #endif // POINTMANAGER_H

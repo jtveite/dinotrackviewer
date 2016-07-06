@@ -29,7 +29,7 @@ void PointManager::ReadFile(std::string fileName)
         }
         points.push_back(p);
     }
-    vb = VertexBuffer::create(points.size() * sizeof(Vertex));
+//    vb = VertexBuffer::create(points.size() * sizeof(Vertex));
 
     /*
     vr = VertexRange(points.size() * sizeof(Vertex), vb);
@@ -39,12 +39,21 @@ void PointManager::ReadFile(std::string fileName)
 */
 
     //position_range = VertexRange(pointArray, vb);
+    colorTexture = Image3::fromFile("colormap.jpg");
     computeLocations(50);
     glGenBuffers(1, &buffer);
     glGenVertexArrays(1, &vao);
     s = MyShader("basic.vert", "basic.geom", "basic.frag");
     s.checkErrors();
     //s.loadTexture("colormap.jpg");
+    //
+    std::vector<int> pl(2);
+    pathlines = pl;
+    pathlines.clear();
+    //AddPathline(Vector3(0.05, 0.2, 0.07), 0);
+    for(int i = 0; i < points.size(); i++){
+    //  pathlines.push_back(i);
+    }
 }
 
 void PointManager::computeLocations(int timesteps){
@@ -53,7 +62,7 @@ void PointManager::computeLocations(int timesteps){
     std::vector<Vertex> pointArray;
     for (int j = 0; j < points.size(); j++){
       VRPoint point = points[j];
-      pointArray.push_back(point.Draw(i));
+      pointArray.push_back(point.Draw(i, colorTexture));
     }
     pointLocations.push_back(pointArray);
   }
@@ -69,25 +78,37 @@ void PointManager::separateVertex(Array<Vertex> array){
     }
 } 
 
+void PointManager::AddPathline(Vector3 pos, int time){
+  float minDist = 10000.f;
+  int bestID = 0;
+  float d;
+  //printf("Finding nearest pathline to %f, %f, %f\n", pos.x, pos.y, pos.z);
+  for(int i = 0; i < points.size(); i++){
+    d = points[i].GetDistance(time, pos);
+    if (d < minDist){
+      minDist = d;
+      bestID = i;
+    }
+  }
+  pathlines.push_back(bestID);
+  //printf("Best pathline was for point %d near to %f, %f, %f", bestID, pos.x, pos.y, pos.z);
+  //std::cout << std::endl;
+}
+
+
 void PointManager::Draw(RenderDevice *rd, int time, Matrix4 mvp){
+    numFramesSeen++;
     clock_t startTime = clock();
     rd->pushState();
-   // std::vector<Vertex> pointArray;
-   // pointArray.reserve(points.size());
-   /*
-    for(int i = 0; i < points.size(); i++){
-        VRPoint point = points[i];
-        pointArray.push_back(point.Draw(time));
-        //pointArray.append(Vector3(0, 0, i));
-    }*/
-    std::vector<Vertex> *pointArray = &pointLocations[time];
+      std::vector<Vertex> *pointArray = &pointLocations[time];
     //printf("Time after setting points: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
-    //separateVertex(pointArray);
     rd->beginOpenGL();
     s.bindShader();
     s.setMatrix4("mvp", mvp);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glBufferData(GL_ARRAY_BUFFER, pointArray->size() * sizeof(Vertex), pointArray->data(), GL_DYNAMIC_DRAW);
+    int bufferSize = pointArray->size() * sizeof(Vertex);
+    Vertex* bufferData = pointArray->data();
+    glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
@@ -97,21 +118,12 @@ void PointManager::Draw(RenderDevice *rd, int time, Matrix4 mvp){
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     s.unbindShader();
     rd->endOpenGL();
-    //printf("Time end of frame: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
-
-    /*
-    printf("Pos Array size: %d, col size: %d\n", posArray.size(), colArray.size());
-    printf("Vertex buffer has %d bytes free and %d allocated.\n", vb->freeSize(), vb->allocatedSize());
-    std::cout << std::endl;
-    vb->reset();
-    printf("Vertex buffer has %d bytes free and %d allocated.\n", vb->freeSize(), vb->allocatedSize());
-    std::cout << std::endl;
-    vr = VertexRange(points.size() * sizeof(Vertex), vb);
-    position_range = VertexRange(posArray, vr, 0, sizeof(Vertex));
-    color_range = VertexRange(colArray, vr, sizeof(Vector3), sizeof(Vertex));
-    printf("Vertex buffer has %d bytes free and %d allocated.\n", vb->freeSize(), vb->allocatedSize());
-    rd->setVertexAttribArray(0, position_range, false);
-    rd->setVertexAttribArray(1, color_range, false);
-    rd->sendSequentialIndices(PrimitiveType::POINTS, pointArray.size());*/
     rd->popState();
+    //printf("Time end of frame: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
+    //pathlines.push_back(numFramesSeen);
+    for(int i = 0; i < pathlines.size(); i++){
+      int pointID = pathlines[i];
+      points[pointID].DrawPathline(rd);
+    }
+
 }
