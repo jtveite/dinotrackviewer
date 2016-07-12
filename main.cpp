@@ -41,8 +41,12 @@ public:
 #ifdef PROFILING
     ProfilerStart(profFile.c_str());
 #endif
-  }
 
+  targetTracker = "Wand_Tracker";
+  if (setup == "" || setup == "desktop"){
+    targetTracker = "Mouse1_Tracker";
+  }
+  }
   virtual ~DinoApp() {
 #ifdef PROFILING
     ProfilerFlush();
@@ -143,7 +147,7 @@ public:
 
     //Do rotation of trackers if needed
     //std::string targetTracker = "Mouse1_Tracker";
-    std::string targetTracker = "Wand_Tracker";
+    //std::string targetTracker = "Wand_Tracker";
     Array<std::string> trackerNames = _trackerFrames.getKeys();
     for (int i = 0; i < trackerNames.size(); i++){
       CoordinateFrame trackerFrame = _trackerFrames[trackerNames[i]];
@@ -153,9 +157,18 @@ public:
           _owm = amountMoved * _owm;
         }
         _lastTrackerLocation = trackerFrame;
+        
       }
 
     }
+
+    //Draw a small ball at the tracker location.
+    //
+    rd->pushState();
+    rd->setObjectToWorldMatrix(CoordinateFrame());
+    Sphere s (_lastTrackerLocation.translation, 0.02);
+    Draw::sphere(s, rd, Color3::red());
+    rd->popState();
 
     if (_placePathline){
       _placePathline = false;
@@ -181,6 +194,7 @@ public:
     }
    
     rd->pushState();
+
     rd->setObjectToWorldMatrix(_owm);
     Matrix4 mvp = rd->invertYMatrix() * rd->modelViewProjectionMatrix();
     
@@ -210,6 +224,7 @@ protected:
   AnimationController ac;
   int _lastFrame;
   bool _placePathline;
+  std::string targetTracker;
 };
 
 int main(int argc, char **argv )

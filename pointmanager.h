@@ -33,7 +33,8 @@ private:
     Array<Vector4> colArray;
     GLuint buffer;
     GLuint vao;
-    MyShader s;
+    MyShader pointShader;
+    MyShader lineShader;
     std::vector< std::vector<Vertex> > pointLocations;
     Image3::Ref colorTexture;
 };

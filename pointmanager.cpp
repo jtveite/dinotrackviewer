@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <cstdlib>
 
 PointManager::PointManager()
 {
@@ -43,16 +44,19 @@ void PointManager::ReadFile(std::string fileName)
     computeLocations(50);
     glGenBuffers(1, &buffer);
     glGenVertexArrays(1, &vao);
-    s = MyShader("basic.vert", "basic.geom", "basic.frag");
-    s.checkErrors();
+    pointShader = MyShader("basic.vert", "basic.geom", "basic.frag");
+    pointShader.checkErrors();
     //s.loadTexture("colormap.jpg");
     //
     std::vector<int> pl(2);
     pathlines = pl;
     pathlines.clear();
     //AddPathline(Vector3(0.05, 0.2, 0.07), 0);
-    for(int i = 0; i < points.size(); i++){
-    //  pathlines.push_back(i);
+    const char* all_paths = std::getenv("SHOW_PATHS");
+    if (all_paths){
+      for(int i = 0; i < points.size(); i++){
+        pathlines.push_back(i);
+      }
     }
 }
 
@@ -103,8 +107,8 @@ void PointManager::Draw(RenderDevice *rd, int time, Matrix4 mvp){
       std::vector<Vertex> *pointArray = &pointLocations[time];
     //printf("Time after setting points: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
     rd->beginOpenGL();
-    s.bindShader();
-    s.setMatrix4("mvp", mvp);
+    pointShader.bindShader();
+    pointShader.setMatrix4("mvp", mvp);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     int bufferSize = pointArray->size() * sizeof(Vertex);
     Vertex* bufferData = pointArray->data();
@@ -116,7 +120,7 @@ void PointManager::Draw(RenderDevice *rd, int time, Matrix4 mvp){
     //printf("Time before draw call: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
     glDrawArrays(GL_POINTS, 0, pointArray->size());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    s.unbindShader();
+    pointShader.unbindShader();
     rd->endOpenGL();
     rd->popState();
     //printf("Time end of frame: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
