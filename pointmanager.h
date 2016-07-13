@@ -24,15 +24,22 @@ private:
     std::vector<VRPoint> points;
     int numFramesSeen;
     
-    
+    std::vector<int> pathOffsets;
+    std::vector<int> pathCounts;
+    std::vector<Vertex> pathVertices;
+    bool updatePaths;
+
+
     std::vector<int> pathlines;
     void computeLocations(int timesteps);
     GLuint buffer;
+    GLuint pathBuffer;
     GLuint vao;
     MyShader pointShader;
     MyShader lineShader;
     std::vector< std::vector<Vertex> > pointLocations;
     Image3::Ref colorTexture;
+    Image3::Ref pathTexture;
 };
 
 #endif // POINTMANAGER_H

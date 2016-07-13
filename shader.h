@@ -7,6 +7,7 @@ class MyShader{
 public:
   MyShader(){};
   MyShader(std::string vertName, std::string geomName, std::string fragName);
+  MyShader(std::string vertName, std::string fragName);
 
   MyShader & operator=(const MyShader & other)
   {
@@ -31,6 +32,8 @@ public:
   void checkProgramError();
 
 private:
+
+  bool usingGeom;
 
   std::string readFile(std::string name);
   

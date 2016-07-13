@@ -19,6 +19,8 @@ public:
     void DrawPathline(RenderDevice *rd);
 
     float GetDistance(int time, Vector3 point);
+
+    std::vector<Vertex> getPathlineVerts(Image3::Ref tex);
 private:
     Vector4 GetColorHorizontalPosition();
     std::vector<Vector3> positions;

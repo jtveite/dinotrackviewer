@@ -6,7 +6,13 @@
 
 
 MyShader::MyShader(std::string vertName, std::string geoName, std::string fragName){
+    usingGeom = true;
     setShaders( vertName, geoName, fragName);
+}
+
+MyShader::MyShader(std::string vertName, std::string fragName){
+    usingGeom = false;
+    setShaders( vertName, "", fragName);
 }
 
 std::string MyShader::readFile(std::string name){
@@ -19,26 +25,33 @@ std::string MyShader::readFile(std::string name){
 
 void MyShader::setShaders(std::string vertName, std::string geoName, std::string fragName){
     std::string vertString = readFile(vertName);
-    std::string geomString = readFile(geoName);
     std::string fragString = readFile(fragName);
     vertShader = glCreateShader(GL_VERTEX_SHADER);
-    geomShader = glCreateShader(GL_GEOMETRY_SHADER);
     fragShader = glCreateShader(GL_FRAGMENT_SHADER);
     const char *cs = vertString.c_str();
     glShaderSource(vertShader, 1, &cs, NULL);
-    cs = geomString.c_str();
-    glShaderSource(geomShader, 1, &cs, NULL);
     cs = fragString.c_str();
     glShaderSource(fragShader, 1, &cs, NULL);
 
+    if (usingGeom){
+      std::string geomString = readFile(geoName);
+      geomShader = glCreateShader(GL_GEOMETRY_SHADER);
+      cs = geomString.c_str();
+      glShaderSource(geomShader, 1, &cs, NULL);
+    } 
+    
     glCompileShader(vertShader);
-    glCompileShader(geomShader);
+    if (usingGeom){
+      glCompileShader(geomShader);
+    }
     glCompileShader(fragShader);
 
     program = glCreateProgram();
 
     glAttachShader(program, vertShader);
-    glAttachShader(program, geomShader);
+    if (usingGeom){
+      glAttachShader(program, geomShader);
+    }
     glAttachShader(program, fragShader);
 
     glLinkProgram(program);

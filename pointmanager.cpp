@@ -31,11 +31,14 @@ void PointManager::ReadFile(std::string fileName)
         points.push_back(p);
     }
     colorTexture = Image3::fromFile("colormap.jpg");
+    pathTexture = Image3::fromFile("pathmap.jpg");
     computeLocations(50);
     glGenBuffers(1, &buffer);
+    glGenBuffers(1, &pathBuffer);
     glGenVertexArrays(1, &vao);
-    pointShader = MyShader("basic.vert", "basic.geom", "basic.frag");
+    pointShader = MyShader("shaders/basic.vert", "shaders/basic.geom", "shaders/basic.frag");
     pointShader.checkErrors();
+    lineShader = MyShader("shaders/path.vert", "shaders/path.frag");
     //s.loadTexture("colormap.jpg");
     //
     std::vector<int> pl(2);
@@ -45,7 +48,13 @@ void PointManager::ReadFile(std::string fileName)
     const char* all_paths = std::getenv("SHOW_PATHS");
     if (all_paths){
       for(int i = 0; i < points.size(); i++){
-        pathlines.push_back(i);
+ 
+        int offset = pathVertices.size();
+        pathOffsets.push_back(offset);
+        std::vector<Vertex> newVerts = points[i].getPathlineVerts(pathTexture);
+        pathCounts.push_back(newVerts.size());
+        pathVertices.insert(pathVertices.end(), newVerts.begin(), newVerts.end());
+
       }
     }
 }
@@ -74,8 +83,12 @@ void PointManager::AddPathline(Vector3 pos, int time){
       bestID = i;
     }
   }
-  pathlines.push_back(bestID);
-  
+
+  int offset = pathVertices.size();
+  pathOffsets.push_back(offset);
+  std::vector<Vertex> newVerts = points[bestID].getPathlineVerts(pathTexture);
+  pathCounts.push_back(newVerts.size());
+  pathVertices.insert(pathVertices.end(), newVerts.begin(), newVerts.end());
 
   //printf("Best pathline was for point %d near to %f, %f, %f", bestID, pos.x, pos.y, pos.z);
   //std::cout << std::endl;
@@ -104,13 +117,28 @@ void PointManager::Draw(RenderDevice *rd, int time, Matrix4 mvp){
     glDrawArrays(GL_POINTS, 0, pointArray->size());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     pointShader.unbindShader();
+
+    lineShader.bindShader();
+    lineShader.setMatrix4("mvp", mvp);
+    
+    
+    bufferSize = pathVertices.size() * sizeof(Vertex);
+    bufferData = pathVertices.data();
+    glBindBuffer(GL_ARRAY_BUFFER, pathBuffer);
+    glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(Vector4));
+    glMultiDrawArrays(GL_LINE_STRIP, pathOffsets.data(), pathCounts.data(), pathOffsets.size());
+    lineShader.unbindShader();
     rd->endOpenGL();
     rd->popState();
     //printf("Time end of frame: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
     //pathlines.push_back(numFramesSeen);
     for(int i = 0; i < pathlines.size(); i++){
       int pointID = pathlines[i];
-      points[pointID].DrawPathline(rd);
+      //points[pointID].DrawPathline(rd);
     }
 
 }

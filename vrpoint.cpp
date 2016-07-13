@@ -49,14 +49,14 @@ Vector4 VRPoint::GetColorHorizontalPosition()
 
 float interpi(float val, float from, float to, int fromVal, int toVal)
 {
-  float d = (val - from) / (to - from);
+  float d = (1.0 * val - from) / (1.0f * to - from);
   return  fromVal *  d + toVal * (1.f - d);
 }
 
 
 float bound(float x){
   if (x < 0){
-    return 0;
+    return 1;
   }
   else if (x > 511){
     return 511;
@@ -73,8 +73,9 @@ Vector4 VRPoint::GetColor(int time, Image3::Ref image)
   float z = interpi(pos.z, -0.048, 0.076, 0, 512-1);
   x = bound(x);
   y = bound(y);
+  z = bound(z);
   //printf("Pixel grabbing from %f,%f with coords %f,%f\n", x, y, pos.y, pos.x);
-  Color3 color = image->nearest(y,x);
+  Color3 color = image->nearest(z,y);
   return Vector4(Vector3(color), 1.0f);
   // return GetColorHorizontalPosition(); 
 
@@ -104,4 +105,16 @@ void VRPoint::DrawPathline(RenderDevice *rd)
 float VRPoint::GetDistance(int time, Vector3 point)
 {
   return (point - positions[time]).squaredMagnitude();
+}
+
+std::vector<Vertex> VRPoint::getPathlineVerts(Image3::Ref image)
+{
+  std::vector<Vertex> v;
+  for(int i = 0; i < positions.size(); i++){
+    float pos = interpi(i, 0, positions.size(), 0, 512-1);
+    Color3 col = image->nearest(pos, 0);
+    Color4 vv (col, 1.0);
+    v.push_back(Vertex(positions[i], vv));
+  }
+  return v;
 }
