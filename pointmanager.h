@@ -18,6 +18,7 @@ public:
     void ReadFile(std::string fileName);
     void Draw(RenderDevice *rd, int time, Matrix4 mvp);
     void AddPathline(Vector3 pos, int time);
+    float pointSize = 0.0004;
 
 private:
     std::vector<VRPoint> points;

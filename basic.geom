@@ -1,16 +1,19 @@
 #version 150
 layout(points) in;
-layout(triangle_strip, max_vertices=128) out;
+layout(triangle_strip, max_vertices=85) out;
 in vec4 vertexColor[];
 
 
 out vec4 gsColor;
+out vec4 normal;
 
 uniform mat4 mvp;
-float rad = 0.0002;
+
+uniform float rad;
+//float rad = 0.002;
 
 vec4 get_vertex(float theta, float phi){
-  return rad * vec4(sin(theta) * sin(phi), cos(phi), cos(theta) * sin(phi), 1.0);
+  return  vec4(sin(theta) * sin(phi), cos(phi), cos(theta) * sin(phi), 1.0);
 }
 
 vec4 transform(vec4 i){
@@ -31,11 +34,13 @@ void main ()
     float phi = up;
     for (float around = 0; around <= 2 * pi; around += tgap){
       float theta = around;
-      gl_Position = pos + get_vertex(theta, phi);
-      gl_Position = transform(gl_Position);
+      vec4 offsetDir = get_vertex(theta, phi);
+      gl_Position = transform(pos + rad * offsetDir);
+      normal = offsetDir;
       EmitVertex();
-      gl_Position = pos + get_vertex(theta, phi+pgap);
-      gl_Position = transform(gl_Position);
+      offsetDir = get_vertex(theta, phi + pgap);
+      gl_Position = transform(pos + rad * offsetDir);
+      normal = offsetDir;
       EmitVertex();
     }
     EndPrimitive();

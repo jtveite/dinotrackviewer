@@ -29,8 +29,8 @@ public:
     Matrix3 scale = Matrix3::fromDiagonal(Vector3(20, 20, 20));
     CoordinateFrame scaleC (scale);
     CoordinateFrame rotate = CoordinateFrame::fromXYZYPRDegrees(
-      1, 0, -7,
-      0, -90, 180);
+      2, 0, -6,
+      -90, -90, 180);
     _owm = rotate * scale;
     ac.setFrameCount(48);//Change to dynamically check how many frames in PM
     ac.setSpeed(15);
@@ -99,10 +99,12 @@ public:
         ac.increaseSpeed();
       }
       else if (eventName == "B04_down"){
-        ac.decreaseSpeed();
+       // ac.decreaseSpeed();
+       pm.pointSize /= 1.3;
       }
       else if (eventName == "B03_down"){
-        ac.increaseSpeed();
+        //ac.increaseSpeed();
+        pm.pointSize *= 1.3;
       }
       
       else if (eventName == "B05_down"){
@@ -175,7 +177,7 @@ public:
     //  CoordinateFrame oldSpace = _lastTrackerLocation * _owm.inverse();
      // Vector3 location = oldSpace.translation;
       Vector3 location = _lastTrackerLocation.translation;
-      location = _lastTrackerLocation.pointToWorldSpace(Vector3(0,0,0));
+      //location = _lastTrackerLocation.pointToWorldSpace(Vector3(0,0,0));
       Matrix4 owm = _owm.toMatrix4();
       Vector4 l = owm.inverse() * Vector4(location, 1.0);
       pm.AddPathline(l.xyz(), t);

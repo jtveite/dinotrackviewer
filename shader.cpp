@@ -52,8 +52,17 @@ void MyShader::setMatrix4(std::string argument, G3D::Matrix4 mat)
   glUniformMatrix4fv(loc, 1, GL_TRUE, vals);
 }
 
+void MyShader::setFloat(std::string argument, float val)
+{
+  GLint loc = glGetUniformLocation(program, argument.c_str());
+  glUniform1f(loc, val);
+}
+
 void MyShader::bindShader(){
-    glUseProgram(program);
+  /*GLint u = texture->openGLTextureTarget();
+  glEnable(u);
+  glBindTexture(u, texture->openGLID());*/
+  glUseProgram(program);
 }
 
 void MyShader::unbindShader(){
@@ -95,4 +104,10 @@ void MyShader::checkProgramError(){
 
   }
 
+}
+
+void MyShader::loadTexture(std::string fileName){
+ // texture = G3D::Texture::fromFile(fileName);
+ // printf("Texture target: %d, texture id: %d\n", texture->openGLTextureTarget(), texture->openGLID());
+  hasTexture = true;
 }

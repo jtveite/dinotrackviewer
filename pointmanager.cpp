@@ -109,6 +109,7 @@ void PointManager::Draw(RenderDevice *rd, int time, Matrix4 mvp){
     rd->beginOpenGL();
     pointShader.bindShader();
     pointShader.setMatrix4("mvp", mvp);
+    pointShader.setFloat("rad", pointSize);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     int bufferSize = pointArray->size() * sizeof(Vertex);
     Vertex* bufferData = pointArray->data();
