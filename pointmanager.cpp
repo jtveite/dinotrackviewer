@@ -30,16 +30,6 @@ void PointManager::ReadFile(std::string fileName)
         }
         points.push_back(p);
     }
-//    vb = VertexBuffer::create(points.size() * sizeof(Vertex));
-
-    /*
-    vr = VertexRange(points.size() * sizeof(Vertex), vb);
-    position_range = VertexRange(posArray, vr, 0, sizeof(Vertex));
-    color_range = VertexRange(colArray, vr, sizeof(Vector3), sizeof(Vertex));
-    printf("Initial Array sizes: pos %d, col %d\n", posArray.size(), colArray.size());
-*/
-
-    //position_range = VertexRange(pointArray, vb);
     colorTexture = Image3::fromFile("colormap.jpg");
     computeLocations(50);
     glGenBuffers(1, &buffer);
@@ -72,16 +62,6 @@ void PointManager::computeLocations(int timesteps){
   }
 }
 
-void PointManager::separateVertex(Array<Vertex> array){
-    posArray.clear();
-    colArray.clear();
-    for(int i = 0; i < array.size(); i++){
-        Vertex v = array[i];
-        posArray.append(v.position);
-        colArray.append(v.color);
-    }
-} 
-
 void PointManager::AddPathline(Vector3 pos, int time){
   float minDist = 10000.f;
   int bestID = 0;
@@ -95,6 +75,8 @@ void PointManager::AddPathline(Vector3 pos, int time){
     }
   }
   pathlines.push_back(bestID);
+  
+
   //printf("Best pathline was for point %d near to %f, %f, %f", bestID, pos.x, pos.y, pos.z);
   //std::cout << std::endl;
 }

@@ -23,15 +23,10 @@ public:
 private:
     std::vector<VRPoint> points;
     int numFramesSeen;
+    
+    
     std::vector<int> pathlines;
-    VertexBufferRef vb;
-    VertexRange vr;
-    VertexRange position_range;
-    VertexRange color_range;
     void computeLocations(int timesteps);
-    void separateVertex(Array<Vertex> array);
-    Array<Vector4> posArray;
-    Array<Vector4> colArray;
     GLuint buffer;
     GLuint vao;
     MyShader pointShader;
