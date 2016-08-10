@@ -34,7 +34,7 @@ private:
   int frameCount;
   int currFrame;
   bool playing = true;
-  std::chrono::high_resolution_clock::time_point startTime;
+  double startTime;
 
   void ValidateSpeed();
 };

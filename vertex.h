@@ -6,19 +6,19 @@
 using namespace G3D;
 struct Vertex{
 public:
-  Vector4 position;
-  Vector4 color;
+  Vector3 position;
+  Vector3 color;
   Vertex(Vector3 pos, Vector4 col){
-    position = Vector4(pos, 1.0);
-    color = col;
+    position = pos;
+    color = col.xyz();
   }
   Vertex(Vector3 pos){
-    position = Vector4(pos, 1.0);
-    color = Vector4(1.0, 1.0, 1.0, 1.0);
+    position = Vector3(pos);
+    color = Vector3(1.0, 1.0, 1.0);
   }
   Vertex(){
-    position = Vector4(0.0, 0.0, 0.0, 0.0);
-    color = Vector4(0.0, 0.0, 0.0, 0.0);
+    position = Vector3(0.0, 0.0, 0.0);
+    color = Vector3(0.0, 0.0, 0.0);
   }
 };
 

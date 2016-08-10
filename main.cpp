@@ -1,7 +1,7 @@
 #include <vrg3d/VRG3D.h>
 #include "pointmanager.h"
 #include "animationcontroller.h"
-
+#include "filter.h"
 
 #define PROFILING
 #undef PROFILING
@@ -15,9 +15,16 @@ using namespace G3D;
 class DinoApp : public VRApp
 {
 public:
-  DinoApp(std::string setup, std::string dataFile) : VRApp(),
+  DinoApp(std::string setup, std::string dataFile, std::string pathFile, bool showAllPaths = false) : VRApp(),
   ac()
   {
+  
+    std::string profFile = "/users/jtveite/d/prof/profile-" + setup;
+#ifdef PROFILING
+    ProfilerStart(profFile.c_str());
+#endif
+
+
     Log *dinolog = new Log("dino-log.txt");
     init(setup, dinolog);
     _mouseToTracker = new MouseToTracker(getCamera(), 2);
@@ -25,27 +32,27 @@ public:
 
 //    pm.ReadFile("/users/jtveite/data/jtveite/slices-130.out");
 //    pm.ReadFile("/users/jtveite/dinotrackviewer/test-data");
-    pm.ReadFile(dataFile);
+    pm.ReadFile(dataFile, true);
+    pm.SetupDraw(showAllPaths);
+    if (pathFile != "" && pathFile != "a"){
+      pm.ReadPathlines(pathFile);
+    }
     Matrix3 scale = Matrix3::fromDiagonal(Vector3(20, 20, 20));
     CoordinateFrame scaleC (scale);
     CoordinateFrame rotate = CoordinateFrame::fromXYZYPRDegrees(
       2, 0, -6,
       -90, -90, 180);
     _owm = rotate * scale;
-    ac.setFrameCount(48);//Change to dynamically check how many frames in PM
+    ac.setFrameCount(pm.getLength());
     ac.setSpeed(15);
 
-//    std::cout << GL_NO_ERROR << ' ' << GL_INVALID_ENUM << ' ' << GL_INVALID_VALUE << ' ' << GL_INVALID_OPERATION << ' ' << GL_INVALID_FRAMEBUFFER_OPERATION << std::endl;
+    //std::cout << GL_NO_ERROR << ' ' << GL_INVALID_ENUM << ' ' << GL_INVALID_VALUE << ' ' << GL_INVALID_OPERATION << ' ' << GL_INVALID_FRAMEBUFFER_OPERATION << std::endl;
     //
-    std::string profFile = "/users/jtveite/d/prof/profile-" + setup;
-#ifdef PROFILING
-    ProfilerStart(profFile.c_str());
-#endif
+    targetTracker = "Wand_Tracker";
+    if (setup == "" || setup == "desktop"){
+      targetTracker = "Mouse1_Tracker";
+    }
 
-  targetTracker = "Wand_Tracker";
-  if (setup == "" || setup == "desktop"){
-    targetTracker = "Mouse1_Tracker";
-  }
   }
   virtual ~DinoApp() {
 #ifdef PROFILING
@@ -124,6 +131,22 @@ public:
       }
       else if (eventName == "kbd_RIGHT_down"){
         ac.stepForward();
+      }
+      
+
+      else if (eventName == "B09_down"){
+        pm.SetFilter(new Filter());
+      }
+      else if (eventName == "B10_down"){
+        pm.SetFilter(new MotionFilter(motionThreshold));
+      }
+      else if (eventName == "B11_down" || eventName == "kbd_J_down"){
+        motionThreshold *= 1.414;
+        pm.SetFilter(new MotionFilter(motionThreshold));
+      }
+      else if (eventName == "B12_down" || eventName == "kbd_K_down"){
+        motionThreshold /= 1.414;
+        pm.SetFilter(new MotionFilter(motionThreshold));
       }
 
 
@@ -227,12 +250,15 @@ protected:
   int _lastFrame;
   bool _placePathline;
   std::string targetTracker;
+  float motionThreshold = 0.01;
 };
 
 int main(int argc, char **argv )
 {
   std::string setup;
   std::string dataFile;
+  std::string pathsFile;
+  bool showAllPaths = false;
   if (argc >= 2)
   {
     setup = std::string(argv[1]);
@@ -244,9 +270,19 @@ int main(int argc, char **argv )
   else{
     dataFile = "/users/jtveite/data/jtveite/slices-68.out";
   }
-
-
-  DinoApp *app = new DinoApp(setup, dataFile);
+  if (argc >= 4)
+  {
+    pathsFile = std::string(argv[3]);
+  }
+  else{
+    pathsFile = "";
+  }
+  if (argc >= 5)
+  {
+    showAllPaths = true;
+  }
+    
+  DinoApp *app = new DinoApp(setup, dataFile, pathsFile,  showAllPaths);
   app->run();
   return 0;
 

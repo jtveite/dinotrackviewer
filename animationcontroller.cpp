@@ -1,4 +1,5 @@
 #include "animationcontroller.h"
+#include <vrg3d/VRG3D.h>
 #include <cstdio>
 
 AnimationController::AnimationController(){
@@ -21,12 +22,11 @@ void AnimationController::setFrameCount(int numFrames){
 }
 
 int AnimationController::getFrame(){
-  using namespace std::chrono;
   if (playing){
-    high_resolution_clock::time_point currentTime = high_resolution_clock::now();
-    duration<double> time_passed = duration_cast<duration<double>>(currentTime - startTime);
+    double currentTime = VRG3D::SynchedSystem::getLocalTime();
+    double time_passed = currentTime - startTime;
     //printf("Time passed: %f\n", time_passed.count());
-    if (time_passed.count() > (1.0/speed)){
+    if (time_passed > (1.0/speed)){
       currFrame++;
       startTime = currentTime;
     }
@@ -61,7 +61,6 @@ void AnimationController::ValidateSpeed(){
   if (speed <= 0){
     speed = 0.01;
   }
-  printf("Animation speed is now %.2f.\n", speed);
 }
 
 void AnimationController::play(){

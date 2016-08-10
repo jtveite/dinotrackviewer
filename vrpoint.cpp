@@ -107,14 +107,103 @@ float VRPoint::GetDistance(int time, Vector3 point)
   return (point - positions[time]).squaredMagnitude();
 }
 
+
+Vector3 getVertexPosition(Vector3 right, Vector3 up, Vector3 base, double radius, double theta){
+  return base + radius * cos(theta) * up + radius * sin(theta) * right;
+}
+
+
+Color4 VRPoint::getColor(int position, Image3::Ref image){
+  float pos = interpi(position, 0, positions.size(), 0, 512-1);
+  Color3 col = image->nearest(pos, 0);
+  return Color4(col, 1.0);
+}
+
 std::vector<Vertex> VRPoint::getPathlineVerts(Image3::Ref image)
 {
+  double radius = 0.0001;
   std::vector<Vertex> v;
+  std::vector<Vertex> points;
+  std::vector<int> indices;
+  int steps_around = 20;
+  for(int i = 0; i < positions.size() -1; i++){
+    Vector3 forward = positions[i+1] - positions[i];
+    Vector3 wup = Vector3(0, 0, 1);
+    Vector3 right = wup.cross(forward).direction();
+    Vector3 up = forward.cross(right).direction();
+    Color4 col = getColor(i, image);
+    for(int j = 0; j < steps_around; j++){
+      points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, (j * 6.28 / steps_around)), col));
+    }
+    for (int j = 0; j < steps_around - 1; j++){
+      int base = steps_around * i +j;
+      indices.push_back(base);
+      indices.push_back(base + steps_around);
+
+      indices.push_back(base + steps_around + 1);
+      indices.push_back(base + 1);
+    }
+    int j = steps_around - 1;
+    int base = steps_around * i + j;
+    indices.push_back(base);
+    indices.push_back(base + steps_around);
+    indices.push_back(base + 1);
+    indices.push_back(base - steps_around + 1);
+
+  }
+  int i = positions.size()-1;
+  Vector3 forward = positions[i] - positions[i-1];
+  Vector3 wup = Vector3(0,0,1);
+  Vector3 right = wup.cross(forward).direction();
+  Vector3 up = forward.cross(right).direction();
+  for(int j = 0; j < steps_around; j++){
+    points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, j * 1.0 / steps_around)));
+  }
+
+
   for(int i = 0; i < positions.size(); i++){
     float pos = interpi(i, 0, positions.size(), 0, 512-1);
     Color3 col = image->nearest(pos, 0);
     Color4 vv (col, 1.0);
-    v.push_back(Vertex(positions[i], vv));
+    //v.push_back(Vertex(positions[i], getColor(i,image)));
+  }
+  //return points;
+  for(int i = 0; i < indices.size(); i++){
+    v.push_back(points[indices[i]]);
   }
   return v;
+}
+
+
+int VRPoint::steps()
+{
+  return positions.size();
+}
+
+
+float VRPoint::totalPathLength()
+{
+  float totalDistance = 0;
+  for(int i = 0; i < positions.size() - 1; i++){
+    float d = (positions[i] - positions[i+1]).magnitude();
+    totalDistance += d;
+  }
+  return totalDistance;
+}
+
+bool VRPoint::withinDistance(VRPoint& other, double distance)
+{
+  int l1 = positions.size();
+  int l2  = other.positions.size();
+  int length = std::min(l1, l2);
+  double d = distance * distance;
+  for(int i = 0; i < positions.size(); i++){
+    for(int j = 0; j < other.positions.size(); j++){
+      float dist = (positions[i] - other.positions[j]).magnitude();
+      if ( dist < distance){
+        return true;
+      }
+    }
+  }
+  return false;
 }

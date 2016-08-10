@@ -20,11 +20,18 @@ public:
 
     float GetDistance(int time, Vector3 point);
 
+    float totalPathLength();
+
+    bool withinDistance(VRPoint& other, double distance);
+
     std::vector<Vertex> getPathlineVerts(Image3::Ref tex);
-private:
-    Vector4 GetColorHorizontalPosition();
     std::vector<Vector3> positions;
+
+    int steps();
     int m_id;
+private:
+    Color4 getColor(int, Image3::Ref);
+    Vector4 GetColorHorizontalPosition();
 
 };
 #endif // VRPOINT_H

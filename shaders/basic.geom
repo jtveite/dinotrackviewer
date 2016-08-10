@@ -1,10 +1,10 @@
 #version 150
 layout(points) in;
 layout(triangle_strip, max_vertices=85) out;
-in vec4 vertexColor[];
+in vec3 vertexColor[];
 
 
-out vec4 gsColor;
+out vec3 gsColor;
 out vec4 normal;
 
 uniform mat4 mvp;
