@@ -85,7 +85,11 @@ void PointManager::SetupDraw(bool allPaths){
     glGenVertexArrays(1, &vao);
     pointShader = MyShader("shaders/basic.vert", "shaders/basic.geom", "shaders/basic.frag");
     pointShader.checkErrors();
+    pointShader.loadTexture("colorMap", "colormap.jpg");
     lineShader = MyShader("shaders/path.vert", "shaders/path.frag");
+    lineShader.checkErrors();
+    lineShader.loadTexture("pathMap", "pathmap.jpg");
+
     //s.loadTexture("colormap.jpg");
     //
     //std::vector<int> pl(2);
@@ -97,7 +101,7 @@ void PointManager::SetupDraw(bool allPaths){
  
         int offset = pathVertices.size();
         pathOffsets.push_back(offset);
-        std::vector<Vertex> newVerts = points[i].getPathlineVerts(pathTexture);
+        std::vector<Vertex> newVerts = points[i].getPathlineVerts();
         pathCounts.push_back(newVerts.size());
         pathVertices.insert(pathVertices.end(), newVerts.begin(), newVerts.end());
 
@@ -132,7 +136,7 @@ void PointManager::computeLocations(){
     std::vector<Vertex> pointArray;
     for (int j = 0; j < visiblePoints.size(); j++){
       //VRPoint point = points[visiblePoints[j]];
-      pointArray.push_back(points[visiblePoints[j]].Draw(i, colorTexture));
+      pointArray.push_back(points[visiblePoints[j]].Draw(i));
     }
     pointLocations.push_back(pointArray);
   }
@@ -158,7 +162,7 @@ void PointManager::AddPathline(Vector3 pos, int time){
 void PointManager::AddPathline(VRPoint& point){
   int offset = pathVertices.size();
   pathOffsets.push_back(offset);
-  std::vector<Vertex> newVerts = point.getPathlineVerts(pathTexture);
+  std::vector<Vertex> newVerts = point.getPathlineVerts();
   pathCounts.push_back(newVerts.size());
   pathVertices.insert(pathVertices.end(), newVerts.begin(), newVerts.end());
   updatePaths = true;
@@ -190,29 +194,39 @@ void PointManager::DrawBoxes(RenderDevice* rd){
 }
 
 void PointManager::DrawPoints(int time, Matrix4 mvp){
-    std::vector<Vertex> *pointArray = &pointLocations[time];
+    //Bind shader and set args
     pointShader.bindShader();
     pointShader.setMatrix4("mvp", mvp);
     pointShader.setFloat("rad", pointSize);
+
+    //Bind and resend buffer data
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    std::vector<Vertex> *pointArray = &pointLocations[time];
     int bufferSize = pointArray->size() * sizeof(Vertex);
     Vertex* bufferData = pointArray->data();
     glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_DYNAMIC_DRAW);
+
+    //set vertex attributes
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(Vector3));
-    //printf("Time before draw call: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(Vector3));
+
+    //Draw the points
     glDrawArrays(GL_POINTS, 0, pointArray->size());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    //Unbind shader
     pointShader.unbindShader();
 }
 
+ 
 void PointManager::DrawPaths(int time, Matrix4 mvp){
-    //printf("Entering draw paths.\n");
+    //Bind shader and set args
     lineShader.bindShader();
     lineShader.setMatrix4("mvp", mvp);
-    
+
+    //Bind buffer, resend data if needed
     glBindBuffer(GL_ARRAY_BUFFER, pathBuffer);
     //updatePaths ensures that we only write new paths to the gpu when needed
     if (updatePaths){
@@ -221,15 +235,18 @@ void PointManager::DrawPaths(int time, Matrix4 mvp){
       Vertex* bufferData = pathVertices.data();
       glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_DYNAMIC_DRAW);
     }
-    //printf("Middle of draw paths.\n");
+
+    //set vertex attributes
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(Vector3));
-    //printf("before draw call.\n");
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(Vector3));
+
+    //Draw points
     glMultiDrawArrays(GL_QUADS, pathOffsets.data(), pathCounts.data(), pathOffsets.size());
+
+    //unbind shader
     lineShader.unbindShader();
-   // printf("Exiting draw paths.\n");
 }
 
 void PointManager::Draw(RenderDevice *rd, int time, Matrix4 mvp){

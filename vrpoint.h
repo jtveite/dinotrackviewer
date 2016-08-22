@@ -12,9 +12,9 @@ class VRPoint {
 
 public:
     VRPoint(int id);
-    Vertex Draw(int time, Image3::Ref image);
+    Vertex Draw(int time);
     void AddPoint(Vector3 point);
-    Vector4 GetColor(int time, Image3::Ref image);
+    Vector2 GetColor(int time);
 
     void DrawPathline(RenderDevice *rd);
 
@@ -24,13 +24,13 @@ public:
 
     bool withinDistance(VRPoint& other, double distance);
 
-    std::vector<Vertex> getPathlineVerts(Image3::Ref tex);
+    std::vector<Vertex> getPathlineVerts();
     std::vector<Vector3> positions;
 
     int steps();
     int m_id;
 private:
-    Color4 getColor(int, Image3::Ref);
+    Vector2 getColor(int);
     Vector4 GetColorHorizontalPosition();
 
 };

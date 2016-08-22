@@ -1,7 +1,8 @@
 varying out vec4 color;
-in vec3 gsColor;
+in vec2 gsColor;
 in vec4 normal;
-//uniform sampler2D colorMap;
+in vec4 position;
+uniform sampler2D colorMap;
 
 
 void main()
@@ -10,5 +11,6 @@ void main()
   float lambertian = max(dot(lightDir, normal.xyz), 0.0);
   float ambient = 0.3; 
   float diffuse = 1. - ambient;
-  color = vec4(gsColor, 1.0) * (ambient + diffuse * lambertian);
+  vec4 baseColor = texture(colorMap, gsColor);
+  color = baseColor * (ambient + diffuse * lambertian);
 }

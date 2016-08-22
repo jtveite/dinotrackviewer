@@ -32,9 +32,6 @@ private:
     void DrawPoints(int time, Matrix4 mvp);
     void DrawPaths(int time, Matrix4 mvp);
 
-    
-  
-
     std::vector<int> visiblePoints;
 
     Filter* filter;

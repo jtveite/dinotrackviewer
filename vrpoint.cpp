@@ -8,7 +8,7 @@ VRPoint::VRPoint(int id)
     m_id = id;
 }
 
-Vertex VRPoint::Draw(int time, Image3::Ref image)
+Vertex VRPoint::Draw(int time)
 {
     if (time > positions.size()){
         return Vertex();
@@ -20,7 +20,7 @@ Vertex VRPoint::Draw(int time, Image3::Ref image)
     //Draw::sphere(s, rd);
  
     //rd->sendVertex(p);
-    return Vertex(p, GetColor(time, image));
+    return Vertex(p, GetColor(time));
 }
 
 
@@ -65,18 +65,18 @@ float bound(float x){
     return x;
 }
 
-Vector4 VRPoint::GetColor(int time, Image3::Ref image)
+Vector2 VRPoint::GetColor(int time)
 {
   Vector3 pos = positions[0];
-  float x = interpi(pos.x, 0, 0.22, 0, 512 - 1);
-  float y = interpi(pos.y, 0, 0.12, 0, 512 - 1);
-  float z = interpi(pos.z, -0.048, 0.076, 0, 512-1);
-  x = bound(x);
-  y = bound(y);
-  z = bound(z);
+  float x = interpi(pos.x, 0, 0.22, 0, 1);
+  float y = interpi(pos.y, 0, 0.12, 0, 1);
+  float z = interpi(pos.z, -0.048, 0.077, 0, 1);
+  //x = bound(x);
+  //y = bound(y);
+  //z = bound(z);
   //printf("Pixel grabbing from %f,%f with coords %f,%f\n", x, y, pos.y, pos.x);
-  Color3 color = image->nearest(z,y);
-  return Vector4(Vector3(color), 1.0f);
+  //Color3 color = image->nearest(z,y);
+  return Vector2(z, y);
   // return GetColorHorizontalPosition(); 
 
 }
@@ -113,13 +113,12 @@ Vector3 getVertexPosition(Vector3 right, Vector3 up, Vector3 base, double radius
 }
 
 
-Color4 VRPoint::getColor(int position, Image3::Ref image){
-  float pos = interpi(position, 0, positions.size(), 0, 512-1);
-  Color3 col = image->nearest(pos, 0);
-  return Color4(col, 1.0);
+Vector2 VRPoint::getColor(int position){
+  float pos = interpi(position, 0, positions.size(), 0, 1);
+  return Vector2(pos, 0.5);
 }
 
-std::vector<Vertex> VRPoint::getPathlineVerts(Image3::Ref image)
+std::vector<Vertex> VRPoint::getPathlineVerts()
 {
   double radius = 0.0001;
   std::vector<Vertex> v;
@@ -131,7 +130,7 @@ std::vector<Vertex> VRPoint::getPathlineVerts(Image3::Ref image)
     Vector3 wup = Vector3(0, 0, 1);
     Vector3 right = wup.cross(forward).direction();
     Vector3 up = forward.cross(right).direction();
-    Color4 col = getColor(i, image);
+    Vector2 col = getColor(i);
     for(int j = 0; j < steps_around; j++){
       points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, (j * 6.28 / steps_around)), col));
     }
@@ -156,18 +155,11 @@ std::vector<Vertex> VRPoint::getPathlineVerts(Image3::Ref image)
   Vector3 wup = Vector3(0,0,1);
   Vector3 right = wup.cross(forward).direction();
   Vector3 up = forward.cross(right).direction();
+  Vector2 col = getColor(i);
   for(int j = 0; j < steps_around; j++){
-    points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, j * 1.0 / steps_around)));
+    points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, j * 1.0 / steps_around), col));
   }
 
-
-  for(int i = 0; i < positions.size(); i++){
-    float pos = interpi(i, 0, positions.size(), 0, 512-1);
-    Color3 col = image->nearest(pos, 0);
-    Color4 vv (col, 1.0);
-    //v.push_back(Vertex(positions[i], getColor(i,image)));
-  }
-  //return points;
   for(int i = 0; i < indices.size(); i++){
     v.push_back(points[indices[i]]);
   }

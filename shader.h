@@ -22,7 +22,7 @@ public:
   void setMatrix4(std::string argument, G3D::Matrix4 mat);
   void setFloat(std::string argument, float val);
 
-  void loadTexture(std::string fileName);
+  void loadTexture(std::string argument, std::string fileName);
 
   void bindShader();
   void unbindShader();
@@ -39,7 +39,8 @@ private:
   
   void setShaders(std::string, std::string, std::string);
   
- // G3D::Texture::Ref texture;
+  G3D::Texture::Ref texture;
+  std::string textureName;
   GLuint vertShader;
   GLuint geomShader;
   GLuint fragShader;

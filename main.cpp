@@ -186,15 +186,6 @@ public:
       }
 
     }
-
-    //Draw a small ball at the tracker location.
-    //
-    rd->pushState();
-    rd->setObjectToWorldMatrix(CoordinateFrame());
-    Sphere s (_lastTrackerLocation.translation, 0.02);
-    Draw::sphere(s, rd, Color3::red());
-    rd->popState();
-
     if (_placePathline){
       _placePathline = false;
     //  CoordinateFrame oldSpace = _lastTrackerLocation * _owm.inverse();
@@ -230,7 +221,16 @@ public:
     Vector3 hp = getCamera()->getHeadPos();
    // printf("Head position: %f, %f, %f\n", hp.x, hp.y, hp.z);
     Vector3 lv = getCamera()->getLookVec();
-  //  printf("Look Vector: %f, %f, %f\n", lv.x, lv.y, lv.z);
+ 
+    //Draw a small ball at the tracker location.
+    //
+    rd->pushState();
+    rd->setObjectToWorldMatrix(CoordinateFrame());
+    Sphere s (_lastTrackerLocation.translation, 0.02);
+    Draw::sphere(s, rd, Color3::red());
+    rd->popState();
+
+ //  printf("Look Vector: %f, %f, %f\n", lv.x, lv.y, lv.z);
 
     rd->popState();
     clock_t newTime = clock();

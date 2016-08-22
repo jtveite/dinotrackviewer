@@ -72,10 +72,16 @@ void MyShader::setFloat(std::string argument, float val)
 }
 
 void MyShader::bindShader(){
-  /*GLint u = texture->openGLTextureTarget();
-  glEnable(u);
-  glBindTexture(u, texture->openGLID());*/
   glUseProgram(program);
+  if(hasTexture){
+    GLint screenLoc = glGetUniformLocation(program, textureName.c_str());
+    glUniform1i(screenLoc, 0);
+    GLint u = texture->openGLTextureTarget();
+    glEnable(u);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(u, texture->openGLID());
+  }
+
 }
 
 void MyShader::unbindShader(){
@@ -85,8 +91,10 @@ void MyShader::unbindShader(){
 
 void MyShader::checkErrors(){
   checkError(vertShader);
-  checkError(geomShader);
   checkError(fragShader);
+  if (usingGeom){
+    checkError(geomShader);
+  }
   checkProgramError();
 }
 
@@ -119,8 +127,10 @@ void MyShader::checkProgramError(){
 
 }
 
-void MyShader::loadTexture(std::string fileName){
+void MyShader::loadTexture(std::string argument, std::string fileName){
  // texture = G3D::Texture::fromFile(fileName);
  // printf("Texture target: %d, texture id: %d\n", texture->openGLTextureTarget(), texture->openGLID());
+  texture = G3D::Texture::fromFile(fileName);
+  textureName = argument;
   hasTexture = true;
 }

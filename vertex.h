@@ -7,18 +7,18 @@ using namespace G3D;
 struct Vertex{
 public:
   Vector3 position;
-  Vector3 color;
-  Vertex(Vector3 pos, Vector4 col){
+  Vector2 color;
+  Vertex(Vector3 pos, Vector2 col){
     position = pos;
-    color = col.xyz();
+    color = col;
   }
-  Vertex(Vector3 pos){
+  Vertex(Vector2 pos){
     position = Vector3(pos);
-    color = Vector3(1.0, 1.0, 1.0);
+    color = Vector2(0.0, 0.0);
   }
   Vertex(){
     position = Vector3(0.0, 0.0, 0.0);
-    color = Vector3(0.0, 0.0, 0.0);
+    color = Vector2(0.0, 0.0);
   }
 };
 

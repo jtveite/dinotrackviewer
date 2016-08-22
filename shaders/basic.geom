@@ -1,11 +1,12 @@
 #version 150
 layout(points) in;
 layout(triangle_strip, max_vertices=85) out;
-in vec3 vertexColor[];
+in vec2 vertexColor[];
 
 
-out vec3 gsColor;
+out vec2 gsColor;
 out vec4 normal;
+out vec4 position;
 
 uniform mat4 mvp;
 
@@ -36,10 +37,12 @@ void main ()
       float theta = around;
       vec4 offsetDir = get_vertex(theta, phi);
       gl_Position = transform(pos + rad * offsetDir);
+      position = gl_Position;
       normal = offsetDir;
       EmitVertex();
       offsetDir = get_vertex(theta, phi + pgap);
       gl_Position = transform(pos + rad * offsetDir);
+      position = gl_Position;
       normal = offsetDir;
       EmitVertex();
     }
