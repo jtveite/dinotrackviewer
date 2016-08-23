@@ -59,6 +59,9 @@ private:
     Image3::Ref colorTexture;
     Image3::Ref pathTexture;
 
+    Vector3 minV;
+    Vector3 maxV;
+
     void retestVisible();
 };
 

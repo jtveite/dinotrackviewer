@@ -12,9 +12,9 @@ class VRPoint {
 
 public:
     VRPoint(int id);
-    Vertex Draw(int time);
+    Vertex Draw(int time, Vector3 minV, Vector3 maxV);
     void AddPoint(Vector3 point);
-    Vector2 GetColor(int time);
+    Vector2 GetColor(int time, Vector3 minV, Vector3 maxV);
 
     void DrawPathline(RenderDevice *rd);
 

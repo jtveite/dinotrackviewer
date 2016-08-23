@@ -1,6 +1,6 @@
 # Makefile base copied from vdemo
 CPP = g++
-CPPFLAGS = -Wall -g -std=c++0x
+CPPFLAGS = -Wall -g -std=c++0x -Og
 LDFLAGS = 
 
 TARGET = dino

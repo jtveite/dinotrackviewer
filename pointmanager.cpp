@@ -8,6 +8,7 @@
 #include <cstdlib>
 
 #include "gperftools/profiler.h"
+#include "fast_atof.c"
 
 PointManager::PointManager()
 {
@@ -52,20 +53,41 @@ void PointManager::ReadFile(std::string fileName, bool debug)
         }
         iss >> id;
         VRPoint p (id);
+        /*
         while (iss >> x >> y >> z){
             p.AddPoint(Vector3(x,y,z));
         }
+*/
+      
+        iss.get();//Clear the leading space left over from grabbing the first one
+        char token[20];
+        float arr[3];
+        int idx = 0;
+        while(!(iss.eof())){
+          iss.getline(token, 20, ' ');
+          arr[idx] = atof(token);
+          idx++;
+          if(idx == 3){
+            idx = 0;
+            p.AddPoint(Vector3(arr));
+          }
+        }
         points.push_back(p);
+        
     }
     printf("Time after reading points: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
 
 
     timeSteps = 0;
+    minV = points[0].positions[0];
+    maxV = minV;
     for(int i = 0; i < points.size(); i++){
       //timeSteps = max(timeSteps, points[i].steps());  
       if (points[i].steps() > timeSteps){
         timeSteps = points[i].steps();
       }
+      minV = minV.min(points[i].positions[0]);
+      maxV = maxV.max(points[i].positions[0]);
     }
     
 
@@ -136,7 +158,7 @@ void PointManager::computeLocations(){
     std::vector<Vertex> pointArray;
     for (int j = 0; j < visiblePoints.size(); j++){
       //VRPoint point = points[visiblePoints[j]];
-      pointArray.push_back(points[visiblePoints[j]].Draw(i));
+      pointArray.push_back(points[visiblePoints[j]].Draw(i, minV, maxV));
     }
     pointLocations.push_back(pointArray);
   }
@@ -169,7 +191,6 @@ void PointManager::AddPathline(VRPoint& point){
 }
 
 void PointManager::SetFilter(Filter* f){
-  delete filter;
   filter = f;
   retestVisible();
 }

@@ -149,7 +149,25 @@ public:
         pm.SetFilter(new MotionFilter(motionThreshold));
       }
 
+      else if (eventName == "kbd_T_down"){
+        _slicer = new SliceFilter();
+        pm.SetFilter(_slicer);
+      }
 
+      else if (eventName == "kbd_R_down"){
+        _slicer->addStart(0.0025);
+        pm.SetFilter(_slicer);
+      }
+
+      else if (eventName == "kbd_F_down"){
+        _slicer->addGap(0.0025);
+        pm.SetFilter(_slicer);
+      }
+
+      else if (eventName == "kbd_G_down"){
+        _slicer->addSize(0.0025);
+        pm.SetFilter(_slicer);
+      }
 
       else if (beginsWith(eventName, "aimo")){}
       else if (eventName == "SynchedTime"){}
@@ -251,6 +269,7 @@ protected:
   bool _placePathline;
   std::string targetTracker;
   float motionThreshold = 0.01;
+  SliceFilter* _slicer;
 };
 
 int main(int argc, char **argv )

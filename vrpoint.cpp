@@ -8,7 +8,7 @@ VRPoint::VRPoint(int id)
     m_id = id;
 }
 
-Vertex VRPoint::Draw(int time)
+Vertex VRPoint::Draw(int time, Vector3 minV, Vector3 maxV)
 {
     if (time > positions.size()){
         return Vertex();
@@ -20,7 +20,7 @@ Vertex VRPoint::Draw(int time)
     //Draw::sphere(s, rd);
  
     //rd->sendVertex(p);
-    return Vertex(p, GetColor(time));
+    return Vertex(p, GetColor(time, minV, maxV));
 }
 
 
@@ -65,17 +65,12 @@ float bound(float x){
     return x;
 }
 
-Vector2 VRPoint::GetColor(int time)
+Vector2 VRPoint::GetColor(int time, Vector3 minV, Vector3 maxV)
 {
   Vector3 pos = positions[0];
-  float x = interpi(pos.x, 0, 0.22, 0, 1);
-  float y = interpi(pos.y, 0, 0.12, 0, 1);
-  float z = interpi(pos.z, -0.048, 0.077, 0, 1);
-  //x = bound(x);
-  //y = bound(y);
-  //z = bound(z);
-  //printf("Pixel grabbing from %f,%f with coords %f,%f\n", x, y, pos.y, pos.x);
-  //Color3 color = image->nearest(z,y);
+  float x = interpi(pos.x, minV.x, maxV.x, 0, 1);
+  float y = interpi(pos.y, minV.y, maxV.y, 0, 1);
+  float z = interpi(pos.z, minV.z, maxV.z, 0, 1);
   return Vector2(z, y);
   // return GetColorHorizontalPosition(); 
 
