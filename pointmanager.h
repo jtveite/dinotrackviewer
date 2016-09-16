@@ -22,6 +22,7 @@ public:
     void Draw(RenderDevice *rd, int time, Matrix4 mvp);
     void AddPathline(Vector3 pos, int time);
     void AddPathline(VRPoint& point);
+    void TempPathline(Vector3 pos, int time);
     void SetFilter(Filter* f);
     float pointSize = 0.0004;
     int getLength();
@@ -31,6 +32,9 @@ private:
     void DrawBoxes(RenderDevice *rd);
     void DrawPoints(int time, Matrix4 mvp);
     void DrawPaths(int time, Matrix4 mvp);
+   
+    //Returns the index of the pathline closest to the given point
+    int FindPathline(Vector3 pos, int time, float min = 10000.f);
 
     std::vector<int> visiblePoints;
 
@@ -43,6 +47,7 @@ private:
     std::vector<int> pathOffsets;
     std::vector<int> pathCounts;
     std::vector<Vertex> pathVertices;
+    std::vector<Vertex> tempPath;
     bool updatePaths;
 
     std::vector<AABox> boxes;
@@ -52,6 +57,9 @@ private:
     void computeLocations();
     GLuint buffer;
     GLuint pathBuffer;
+    GLuint tempPathBuffer;
+    bool useSeparateBuffers = true;
+    GLuint* pointBuffers;
     GLuint vao;
     MyShader pointShader;
     MyShader lineShader;

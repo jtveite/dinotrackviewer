@@ -99,11 +99,21 @@ void PointManager::SetupDraw(bool allPaths){
     colorTexture = Image3::fromFile("colormap.jpg");
     pathTexture = Image3::fromFile("pathmap.jpg");
   
+
+
     filter = new Filter();
+   
+    if (useSeparateBuffers && timeSteps > 0){
+      pointBuffers = new GLuint[timeSteps];
+      glGenBuffers(timeSteps, pointBuffers);
+    }
+   
+   
     retestVisible();
 
     glGenBuffers(1, &buffer);
     glGenBuffers(1, &pathBuffer);
+    glGenBuffers(1, &tempPathBuffer);
     glGenVertexArrays(1, &vao);
     pointShader = MyShader("shaders/basic.vert", "shaders/basic.geom", "shaders/basic.frag");
     pointShader.checkErrors();
@@ -112,12 +122,7 @@ void PointManager::SetupDraw(bool allPaths){
     lineShader.checkErrors();
     lineShader.loadTexture("pathMap", "pathmap.jpg");
 
-    //s.loadTexture("colormap.jpg");
-    //
-    //std::vector<int> pl(2);
-    //pathlines = pl;
-    //pathlines.clear();
-    //AddPathline(Vector3(0.05, 0.2, 0.07), 0);
+
     if (allPaths){
       for(int i = 0; i < points.size(); i++){
  
@@ -162,10 +167,20 @@ void PointManager::computeLocations(){
     }
     pointLocations.push_back(pointArray);
   }
+
+  if(useSeparateBuffers){
+    for(int i = 0; i < timeSteps; i++){
+      glBindBuffer(GL_ARRAY_BUFFER, pointBuffers[i]);
+      std::vector<Vertex> *pointArray = &pointLocations[i];
+      int bufferSize = pointArray->size() * sizeof(Vertex);
+      Vertex* bufferData = pointArray->data();
+      glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_STATIC_DRAW);
+
+    }
+  }
 }
 
-void PointManager::AddPathline(Vector3 pos, int time){
-  float minDist = 10000.f;
+int PointManager::FindPathline(Vector3 pos, int time, float minDist){
   int bestID = 0;
   float d;
   //printf("Finding nearest pathline to %f, %f, %f\n", pos.x, pos.y, pos.z);
@@ -176,6 +191,17 @@ void PointManager::AddPathline(Vector3 pos, int time){
       bestID = i;
     }
   }
+  return bestID;
+} 
+
+void PointManager::TempPathline(Vector3 pos, int time){
+  int bestID = FindPathline(pos, time);
+  VRPoint& point = points[bestID];
+  tempPath = point.getPathlineVerts();
+}
+
+void PointManager::AddPathline(Vector3 pos, int time){
+  int bestID = FindPathline(pos, time); 
   AddPathline(points[bestID]);
   //printf("Best pathline was for point %d near to %f, %f, %f", bestID, pos.x, pos.y, pos.z);
   //std::cout << std::endl;
@@ -221,11 +247,24 @@ void PointManager::DrawPoints(int time, Matrix4 mvp){
     pointShader.setFloat("rad", pointSize);
 
     //Bind and resend buffer data
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    std::vector<Vertex> *pointArray = &pointLocations[time];
-    int bufferSize = pointArray->size() * sizeof(Vertex);
-    Vertex* bufferData = pointArray->data();
-    glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_DYNAMIC_DRAW);
+    int numElements;
+    if (useSeparateBuffers){
+      if (time < timeSteps){
+        glBindBuffer(GL_ARRAY_BUFFER, pointBuffers[time]);
+        numElements = pointLocations[time].size();
+      }
+      else{
+        return;
+      }
+    }
+    else{
+      glBindBuffer(GL_ARRAY_BUFFER, buffer);
+      std::vector<Vertex> *pointArray = &pointLocations[time];
+      numElements = pointArray->size();
+      int bufferSize = pointArray->size() * sizeof(Vertex);
+      Vertex* bufferData = pointArray->data();
+      glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_DYNAMIC_DRAW);
+    }
 
     //set vertex attributes
     glEnableVertexAttribArray(0);
@@ -233,8 +272,9 @@ void PointManager::DrawPoints(int time, Matrix4 mvp){
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(Vector3));
 
+
     //Draw the points
-    glDrawArrays(GL_POINTS, 0, pointArray->size());
+    glDrawArrays(GL_POINTS, 0, numElements);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     //Unbind shader
@@ -265,6 +305,23 @@ void PointManager::DrawPaths(int time, Matrix4 mvp){
 
     //Draw points
     glMultiDrawArrays(GL_QUADS, pathOffsets.data(), pathCounts.data(), pathOffsets.size());
+    
+
+    //Draw temporary paths
+    if (tempPath.size() > 0){
+      glBindBuffer(GL_ARRAY_BUFFER, tempPathBuffer);
+      int bufferSize = tempPath.size() * sizeof(Vertex);
+      Vertex* bufferData = tempPath.data();
+      glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_DYNAMIC_DRAW);
+      
+      glEnableVertexAttribArray(0);
+      glEnableVertexAttribArray(1);
+      glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
+      glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(Vector3));
+
+
+      glDrawArrays(GL_QUADS, 0, tempPath.size());
+    }
 
     //unbind shader
     lineShader.unbindShader();

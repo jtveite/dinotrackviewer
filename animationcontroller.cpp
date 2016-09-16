@@ -22,10 +22,9 @@ void AnimationController::setFrameCount(int numFrames){
 }
 
 int AnimationController::getFrame(){
+  double currentTime = VRG3D::SynchedSystem::getLocalTime();
   if (playing){
-    double currentTime = VRG3D::SynchedSystem::getLocalTime();
     double time_passed = currentTime - startTime;
-    //printf("Time passed: %f\n", time_passed.count());
     if (time_passed > (1.0/speed)){
       currFrame++;
       startTime = currentTime;
@@ -34,6 +33,8 @@ int AnimationController::getFrame(){
       currFrame = 0;
     }
   }
+  printf("Frame time : %f \n", currentTime - lastTime);
+  lastTime = currentTime;
   return currFrame;
 }
 

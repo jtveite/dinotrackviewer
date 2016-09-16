@@ -12,6 +12,8 @@
 
 using namespace G3D;
 
+enum struct Mode { STANDARD, ANIMATION, FILTER, SLICES};
+
 class DinoApp : public VRApp
 {
 public:
@@ -53,6 +55,8 @@ public:
       targetTracker = "Mouse1_Tracker";
     }
 
+    _slicer = new SliceFilter();
+
   }
   virtual ~DinoApp() {
 #ifdef PROFILING
@@ -80,6 +84,20 @@ public:
           _trackerFrames.set(events[i]->getName(), events[i]->getCoordinateFrameData());
         }
       }
+      else if (eventName == "B09_down" || eventName == "kbd_1_down"){
+        mode = Mode::STANDARD;
+      }
+      else if (eventName == "B10_down" || eventName == "kbd_2_down"){
+        mode = Mode::ANIMATION;
+      }
+      else if (eventName == "B11_down" || eventName == "kbd_3_down"){
+        mode = Mode::FILTER;
+        pm.SetFilter(new MotionFilter(motionThreshold));
+      }
+      else if (eventName == "B12_down" || eventName == "kbd_4_down"){
+        mode = Mode::SLICES;
+        pm.SetFilter(_slicer);
+      }
       else if(eventName == "Mouse_Left_Btn_down"){
         _moving = true;
       }
@@ -106,19 +124,56 @@ public:
         ac.increaseSpeed();
       }
       else if (eventName == "B04_down"){
-       // ac.decreaseSpeed();
-       pm.pointSize /= 1.3;
+        // ac.decreaseSpeed();
+        if (mode == Mode::STANDARD){
+          pm.pointSize /= 1.3;
+        }
+        if (mode == Mode::ANIMATION){
+          ac.decreaseSpeed();
+        }
+        if (mode == Mode::SLICES){
+          _slicer->addStart(.001);
+          pm.SetFilter(_slicer);
+        }
+        if (mode == Mode::FILTER){
+          motionThreshold *= 1.414;
+          pm.SetFilter(new MotionFilter(motionThreshold));
+        }
       }
       else if (eventName == "B03_down"){
-        //ac.increaseSpeed();
-        pm.pointSize *= 1.3;
+        if (mode == Mode::STANDARD){
+          pm.pointSize *= 1.3;
+        }
+        if (mode == Mode::ANIMATION){
+          ac.increaseSpeed();
+        }
+        if (mode == Mode::SLICES){
+          _slicer->addStart(-.001);
+          pm.SetFilter(_slicer);
+        }
+        if (mode == Mode::FILTER){
+          motionThreshold /= 1.414;
+          pm.SetFilter(new MotionFilter(motionThreshold));
+        }
       }
       
       else if (eventName == "B05_down"){
-        ac.stepBackward();
+        if (mode == Mode::STANDARD || mode == Mode::ANIMATION){
+          ac.stepBackward();
+        }
+        if (mode == Mode::SLICES){
+          _slicer->addGap(-.0025);
+          pm.SetFilter(_slicer);
+        }
       }
       else if (eventName == "B06_down"){
-        ac.stepForward();
+        if (mode == Mode::STANDARD || mode == Mode::ANIMATION){
+          ac.stepForward();
+        }
+        if (mode == Mode::SLICES){
+          _slicer->addGap(.0025);
+          pm.SetFilter(_slicer);
+        }
       }
       else if (eventName == "B07_down"){
         ac.togglePlay();
@@ -132,8 +187,14 @@ public:
       else if (eventName == "kbd_RIGHT_down"){
         ac.stepForward();
       }
+      else if (eventName == "kbd_C_down"){
+        pm.pointSize *= 1.3;
+      }
+      else if (eventName == "kbd_V_down"){
+        pm.pointSize /= 1.3;
+      }
       
-
+/*
       else if (eventName == "B09_down"){
         pm.SetFilter(new Filter());
       }
@@ -148,9 +209,8 @@ public:
         motionThreshold /= 1.414;
         pm.SetFilter(new MotionFilter(motionThreshold));
       }
-
+*/
       else if (eventName == "kbd_T_down"){
-        _slicer = new SliceFilter();
         pm.SetFilter(_slicer);
       }
 
@@ -218,6 +278,13 @@ public:
       //printf("placing a pathline at %f, %f, %f\n", location.x, location.y, location.z);
     }
 
+      Vector3 location = _lastTrackerLocation.translation;
+      //location = _lastTrackerLocation.pointToWorldSpace(Vector3(0,0,0));
+      Matrix4 owm = _owm.toMatrix4();
+      Vector4 l = owm.inverse() * Vector4(location, 1.0);
+      pm.TempPathline(l.xyz(), t);
+    
+
     rd->pushState();
     //rd->setObjectToWorldMatrix(_virtualToRoomSpace);
     int gl_error;
@@ -270,6 +337,7 @@ protected:
   std::string targetTracker;
   float motionThreshold = 0.01;
   SliceFilter* _slicer;
+  Mode mode = Mode::STANDARD;
 };
 
 int main(int argc, char **argv )

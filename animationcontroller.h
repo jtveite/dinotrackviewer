@@ -35,6 +35,7 @@ private:
   int currFrame;
   bool playing = true;
   double startTime;
+  double lastTime;
 
   void ValidateSpeed();
 };
