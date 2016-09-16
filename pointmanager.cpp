@@ -7,6 +7,8 @@
 #include <sstream>
 #include <cstdlib>
 
+#include <glm/glm.hpp>
+
 #include "gperftools/profiler.h"
 #include "fast_atof.c"
 
@@ -43,9 +45,9 @@ void PointManager::ReadFile(std::string fileName, bool debug)
           iss >> c;
           //Reading in a box coords
           iss >> x >> y >> z;
-          Vector3 lower(x,y,z);
+          glm::vec3 lower(x,y,z);
           iss >> x >> y >> z;
-          Vector3 upper(x,y,z);
+          glm::vec3 upper(x,y,z);
           AABox box (lower.min(upper), upper.max(lower));
           //printf("Read box %f,%f,%f:%f,%f,%f\n", lower.x, lower.y, lower.z, upper.x, upper.y, upper.z );
           boxes.push_back(box);
@@ -55,7 +57,7 @@ void PointManager::ReadFile(std::string fileName, bool debug)
         VRPoint p (id);
         /*
         while (iss >> x >> y >> z){
-            p.AddPoint(Vector3(x,y,z));
+            p.AddPoint(glm::vec3(x,y,z));
         }
 */
       
@@ -69,7 +71,7 @@ void PointManager::ReadFile(std::string fileName, bool debug)
           idx++;
           if(idx == 3){
             idx = 0;
-            p.AddPoint(Vector3(arr));
+            p.AddPoint(glm::vec3(arr));
           }
         }
         points.push_back(p);
@@ -180,7 +182,7 @@ void PointManager::computeLocations(){
   }
 }
 
-int PointManager::FindPathline(Vector3 pos, int time, float minDist){
+int PointManager::FindPathline(glm::vec3 pos, int time, float minDist){
   int bestID = 0;
   float d;
   //printf("Finding nearest pathline to %f, %f, %f\n", pos.x, pos.y, pos.z);
@@ -194,13 +196,13 @@ int PointManager::FindPathline(Vector3 pos, int time, float minDist){
   return bestID;
 } 
 
-void PointManager::TempPathline(Vector3 pos, int time){
+void PointManager::TempPathline(glm::vec3 pos, int time){
   int bestID = FindPathline(pos, time);
   VRPoint& point = points[bestID];
   tempPath = point.getPathlineVerts();
 }
 
-void PointManager::AddPathline(Vector3 pos, int time){
+void PointManager::AddPathline(glm::vec3 pos, int time){
   int bestID = FindPathline(pos, time); 
   AddPathline(points[bestID]);
   //printf("Best pathline was for point %d near to %f, %f, %f", bestID, pos.x, pos.y, pos.z);
@@ -240,7 +242,7 @@ void PointManager::DrawBoxes(RenderDevice* rd){
   }
 }
 
-void PointManager::DrawPoints(int time, Matrix4 mvp){
+void PointManager::DrawPoints(int time, glm::mat4 mvp){
     //Bind shader and set args
     pointShader.bindShader();
     pointShader.setMatrix4("mvp", mvp);
@@ -270,7 +272,7 @@ void PointManager::DrawPoints(int time, Matrix4 mvp){
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(Vector3));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
 
 
     //Draw the points
@@ -282,7 +284,7 @@ void PointManager::DrawPoints(int time, Matrix4 mvp){
 }
 
  
-void PointManager::DrawPaths(int time, Matrix4 mvp){
+void PointManager::DrawPaths(int time, glm::mat4 mvp){
     //Bind shader and set args
     lineShader.bindShader();
     lineShader.setMatrix4("mvp", mvp);
@@ -301,7 +303,7 @@ void PointManager::DrawPaths(int time, Matrix4 mvp){
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(Vector3));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
 
     //Draw points
     glMultiDrawArrays(GL_QUADS, pathOffsets.data(), pathCounts.data(), pathOffsets.size());
@@ -317,7 +319,7 @@ void PointManager::DrawPaths(int time, Matrix4 mvp){
       glEnableVertexAttribArray(0);
       glEnableVertexAttribArray(1);
       glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
-      glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(Vector3));
+      glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
 
 
       glDrawArrays(GL_QUADS, 0, tempPath.size());
@@ -327,7 +329,7 @@ void PointManager::DrawPaths(int time, Matrix4 mvp){
     lineShader.unbindShader();
 }
 
-void PointManager::Draw(RenderDevice *rd, int time, Matrix4 mvp){
+void PointManager::Draw(RenderDevice *rd, int time, glm::mat4 mvp){
     numFramesSeen++;
     clock_t startTime = clock();
     rd->pushState();

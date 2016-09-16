@@ -60,7 +60,7 @@ bool MotionFilter::checkPoint(VRPoint& p){
   if (p.positions.size() == 0){
     return false;
   }
-  G3D::Vector3 startPos = p.positions[0];
+  glm::vec3 startPos = p.positions[0];
 
   for(int i = 1; i < p.positions.size(); i++){
     float d = (startPos - p.positions[i]).magnitude();

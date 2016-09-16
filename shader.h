@@ -19,7 +19,7 @@ public:
   }
 
 
-  void setMatrix4(std::string argument, G3D::Matrix4 mat);
+  void setMatrix4(std::string argument, glm::mat4 mat);
   void setFloat(std::string argument, float val);
 
   void loadTexture(std::string argument, std::string fileName);

@@ -12,26 +12,26 @@ class VRPoint {
 
 public:
     VRPoint(int id);
-    Vertex Draw(int time, Vector3 minV, Vector3 maxV);
-    void AddPoint(Vector3 point);
-    Vector2 GetColor(int time, Vector3 minV, Vector3 maxV);
+    Vertex Draw(int time, glm::vec3 minV, glm::vec3 maxV);
+    void AddPoint(glm::vec3 point);
+    glm::vec2 GetColor(int time, glm::vec3 minV, glm::vec3 maxV);
 
     void DrawPathline(RenderDevice *rd);
 
-    float GetDistance(int time, Vector3 point);
+    float GetDistance(int time, glm::vec3 point);
 
     float totalPathLength();
 
     bool withinDistance(VRPoint& other, double distance);
 
     std::vector<Vertex> getPathlineVerts();
-    std::vector<Vector3> positions;
+    std::vector<glm::vec3> positions;
 
     int steps();
     int m_id;
 private:
-    Vector2 getColor(int);
-    Vector4 GetColorHorizontalPosition();
+    glm::vec2 getColor(int);
+    glm::vec4 GetColorHorizontalPosition();
 
 };
 #endif // VRPOINT_H

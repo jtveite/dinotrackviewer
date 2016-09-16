@@ -58,7 +58,7 @@ void MyShader::setShaders(std::string vertName, std::string geoName, std::string
 
 }
 
-void MyShader::setMatrix4(std::string argument, G3D::Matrix4 mat)
+void MyShader::setMatrix4(std::string argument, glm::mat4 mat)
 {
   float* vals = mat;
   GLint loc = glGetUniformLocation(program, argument.c_str());

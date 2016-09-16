@@ -8,13 +8,13 @@ VRPoint::VRPoint(int id)
     m_id = id;
 }
 
-Vertex VRPoint::Draw(int time, Vector3 minV, Vector3 maxV)
+Vertex VRPoint::Draw(int time, glm::vec3 minV, glm::vec3 maxV)
 {
     if (time > positions.size()){
         return Vertex();
         //Fail silently
     }
-    Vector3 p = positions[time];
+    glm::vec3 p = positions[time];
    // printf("Drawing point at %f, %f, %f.\r", p.x, p.y, p.z);
     //Sphere s (p, 1e-4);
     //Draw::sphere(s, rd);
@@ -24,7 +24,7 @@ Vertex VRPoint::Draw(int time, Vector3 minV, Vector3 maxV)
 }
 
 
-Vector4 interp(float val, float from, float to, Vector4 fromVal, Vector4 toVal)
+glm::vec4 interp(float val, float from, float to, glm::vec4 fromVal, glm::vec4 toVal)
 {
   float d = (val - from) / (to - from);
   return fromVal * d + toVal * (1.f - d);
@@ -32,16 +32,16 @@ Vector4 interp(float val, float from, float to, Vector4 fromVal, Vector4 toVal)
 }
 
 
-Vector4 getColorHorizontal(Vector3 pos)
+glm::vec4 getColorHorizontal(glm::vec3 pos)
 {
     float val = pos.y;
-    Vector4 backCol = Vector4(0, .6, 0, 1);
-    Vector4 frontCol = Vector4(.6, 0, 1, 1);
+    glm::vec4 backCol = glm::vec4(0, .6, 0, 1);
+    glm::vec4 frontCol = glm::vec4(.6, 0, 1, 1);
     return interp(val, 0.069, 0.21, backCol, frontCol);
 }
 
 
-Vector4 VRPoint::GetColorHorizontalPosition()
+glm::vec4 VRPoint::GetColorHorizontalPosition()
 {
     return getColorHorizontal(positions[0]);
 
@@ -65,18 +65,18 @@ float bound(float x){
     return x;
 }
 
-Vector2 VRPoint::GetColor(int time, Vector3 minV, Vector3 maxV)
+glm::vec2 VRPoint::GetColor(int time, glm::vec3 minV, glm::vec3 maxV)
 {
-  Vector3 pos = positions[0];
+  glm::vec3 pos = positions[0];
   float x = interpi(pos.x, minV.x, maxV.x, 0, 1);
   float y = interpi(pos.y, minV.y, maxV.y, 0, 1);
   float z = interpi(pos.z, minV.z, maxV.z, 0, 1);
-  return Vector2(z, y);
+  return glm::vec2(z, y);
   // return GetColorHorizontalPosition(); 
 
 }
 
-void VRPoint::AddPoint(Vector3 point)
+void VRPoint::AddPoint(glm::vec3 point)
 {
     positions.push_back(point);
 }
@@ -97,20 +97,20 @@ void VRPoint::DrawPathline(RenderDevice *rd)
   }
 }
 
-float VRPoint::GetDistance(int time, Vector3 point)
+float VRPoint::GetDistance(int time, glm::vec3 point)
 {
   return (point - positions[time]).squaredMagnitude();
 }
 
 
-Vector3 getVertexPosition(Vector3 right, Vector3 up, Vector3 base, double radius, double theta){
+glm::vec3 getVertexPosition(glm::vec3 right, glm::vec3 up, glm::vec3 base, double radius, double theta){
   return base + radius * cos(theta) * up + radius * sin(theta) * right;
 }
 
 
-Vector2 VRPoint::getColor(int position){
+glm::vec2 VRPoint::getColor(int position){
   float pos = interpi(position, 0, positions.size(), 0, 1);
-  return Vector2(pos, 0.5);
+  return glm::vec2(pos, 0.5);
 }
 
 std::vector<Vertex> VRPoint::getPathlineVerts()
@@ -121,11 +121,11 @@ std::vector<Vertex> VRPoint::getPathlineVerts()
   std::vector<int> indices;
   int steps_around = 20;
   for(int i = 0; i < positions.size() -1; i++){
-    Vector3 forward = positions[i+1] - positions[i];
-    Vector3 wup = Vector3(0, 0, 1);
-    Vector3 right = wup.cross(forward).direction();
-    Vector3 up = forward.cross(right).direction();
-    Vector2 col = getColor(i);
+    glm::vec3 forward = positions[i+1] - positions[i];
+    glm::vec3 wup = glm::vec3(0, 0, 1);
+    glm::vec3 right = wup.cross(forward).direction();
+    glm::vec3 up = forward.cross(right).direction();
+    glm::vec2 col = getColor(i);
     for(int j = 0; j < steps_around; j++){
       points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, (j * 6.28 / steps_around)), col));
     }
@@ -146,11 +146,11 @@ std::vector<Vertex> VRPoint::getPathlineVerts()
 
   }
   int i = positions.size()-1;
-  Vector3 forward = positions[i] - positions[i-1];
-  Vector3 wup = Vector3(0,0,1);
-  Vector3 right = wup.cross(forward).direction();
-  Vector3 up = forward.cross(right).direction();
-  Vector2 col = getColor(i);
+  glm::vec3 forward = positions[i] - positions[i-1];
+  glm::vec3 wup = glm::vec3(0,0,1);
+  glm::vec3 right = wup.cross(forward).direction();
+  glm::vec3 up = forward.cross(right).direction();
+  glm::vec2 col = getColor(i);
   for(int j = 0; j < steps_around; j++){
     points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, j * 1.0 / steps_around), col));
   }

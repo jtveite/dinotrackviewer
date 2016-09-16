@@ -19,10 +19,10 @@ public:
     void ReadFile(std::string fileName, bool debug = false);
     void SetupDraw(bool allPaths = false);
     void ReadPathlines(std::string fileName);
-    void Draw(RenderDevice *rd, int time, Matrix4 mvp);
-    void AddPathline(Vector3 pos, int time);
+    void Draw(RenderDevice *rd, int time, glm::mat4 mvp);
+    void AddPathline(glm::vec3 pos, int time);
     void AddPathline(VRPoint& point);
-    void TempPathline(Vector3 pos, int time);
+    void TempPathline(glm::vec3 pos, int time);
     void SetFilter(Filter* f);
     float pointSize = 0.0004;
     int getLength();
@@ -30,11 +30,11 @@ public:
 
 private:
     void DrawBoxes(RenderDevice *rd);
-    void DrawPoints(int time, Matrix4 mvp);
-    void DrawPaths(int time, Matrix4 mvp);
+    void DrawPoints(int time, glm::mat4 mvp);
+    void DrawPaths(int time, glm::mat4 mvp);
    
     //Returns the index of the pathline closest to the given point
-    int FindPathline(Vector3 pos, int time, float min = 10000.f);
+    int FindPathline(glm::vec3 pos, int time, float min = 10000.f);
 
     std::vector<int> visiblePoints;
 
@@ -67,8 +67,8 @@ private:
     Image3::Ref colorTexture;
     Image3::Ref pathTexture;
 
-    Vector3 minV;
-    Vector3 maxV;
+    glm::vec3 minV;
+    glm::vec3 maxV;
 
     void retestVisible();
 };
