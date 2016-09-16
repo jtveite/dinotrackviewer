@@ -2,6 +2,8 @@
 #include "pointmanager.h"
 #include "animationcontroller.h"
 #include "filter.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #define PROFILING
 #undef PROFILING
@@ -272,7 +274,8 @@ public:
       //location = _lastTrackerLocation.pointToWorldSpace(Vector3(0,0,0));
       Matrix4 owm = _owm.toMatrix4();
       Vector4 l = owm.inverse() * Vector4(location, 1.0);
-      pm.AddPathline(l.xyz(), t);
+      glm::vec3 ll (l.x, l.y, l.z);
+      pm.AddPathline(ll, t);
       //std::cout << l.xyz() << std::endl;
       //printf("placing a pathline at %f, %f, %f\n", location.x, location.y, location.z);
       //printf("placing a pathline at %f, %f, %f\n", location.x, location.y, location.z);
@@ -282,7 +285,8 @@ public:
       //location = _lastTrackerLocation.pointToWorldSpace(Vector3(0,0,0));
       Matrix4 owm = _owm.toMatrix4();
       Vector4 l = owm.inverse() * Vector4(location, 1.0);
-      pm.TempPathline(l.xyz(), t);
+      glm::vec3 ll (l.x, l.y, l.z);
+      pm.TempPathline(ll, t);
     
 
     rd->pushState();
@@ -298,9 +302,11 @@ public:
 
     rd->setObjectToWorldMatrix(_owm);
     Matrix4 mvp = rd->invertYMatrix() * rd->modelViewProjectionMatrix();
-    
+    float *hack;
+    hack = mvp;
+    glm::mat4 mmvp = glm::make_mat4(hack);
     //std::cout << t << std::endl;
-    pm.Draw(rd, t, mvp);
+    pm.Draw(rd, t, mmvp);
     rd->popState();
 
     Vector3 hp = getCamera()->getHeadPos();

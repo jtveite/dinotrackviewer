@@ -8,6 +8,8 @@
 #include "shader.h"
 #include "filter.h"
 #include <GL/gl.h>
+#include <glm/glm.hpp>
+
 
 using namespace G3D;
 

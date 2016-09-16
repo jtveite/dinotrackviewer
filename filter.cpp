@@ -1,5 +1,6 @@
 #include "filter.h"
 #include <vrg3d/VRG3D.h>
+#include <glm/glm.hpp>
 
 bool Filter::checkPoint(VRPoint& p)
 {

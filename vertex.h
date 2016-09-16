@@ -2,6 +2,8 @@
 #define VERTEX_H
 #include <GL/gl.h>
 #include <vrg3d/VRG3D.h>
+#include <glm/glm.hpp>
+
 
 using namespace G3D;
 struct Vertex{
@@ -12,8 +14,8 @@ public:
     position = pos;
     color = col;
   }
-  Vertex(glm::vec2 pos){
-    position = glm::vec3(pos);
+  Vertex(glm::vec3 pos){
+    position = pos;
     color = glm::vec2(0.0, 0.0);
   }
   Vertex(){

@@ -1,5 +1,7 @@
 #include <vrg3d/VRG3D.h>
 #include <vector>
+#include <glm/glm.hpp>
+
 
 #include "vertex.h"
 
@@ -16,7 +18,6 @@ public:
     void AddPoint(glm::vec3 point);
     glm::vec2 GetColor(int time, glm::vec3 minV, glm::vec3 maxV);
 
-    void DrawPathline(RenderDevice *rd);
 
     float GetDistance(int time, glm::vec3 point);
 

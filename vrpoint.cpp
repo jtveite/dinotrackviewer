@@ -1,5 +1,7 @@
 #include "vrpoint.h"
 #include <stdio.h>
+#include <glm/glm.hpp>
+
 
 using namespace G3D;
 
@@ -81,29 +83,15 @@ void VRPoint::AddPoint(glm::vec3 point)
     positions.push_back(point);
 }
 
-void VRPoint::DrawPathline(RenderDevice *rd)
-{
-  if (glGetError() != GL_NO_ERROR){
-    printf("bad at start\n");
-  }
-  rd->beginPrimitive(PrimitiveType::LINE_STRIP);
-  //printf("Drawing pathline with the first vertex at %f, %f, %f\n", positions[0].x, positions[0].y, positions[0].z);
-  for(int i = 0; i < positions.size(); i++){
-    rd->sendVertex(positions[i]);
-  }
-  rd->endPrimitive();
-  if (glGetError() != GL_NO_ERROR){
-    printf("bad at end\n");
-  }
-}
+
 
 float VRPoint::GetDistance(int time, glm::vec3 point)
 {
-  return (point - positions[time]).squaredMagnitude();
+  return glm::length(point - positions[time]);
 }
 
 
-glm::vec3 getVertexPosition(glm::vec3 right, glm::vec3 up, glm::vec3 base, double radius, double theta){
+glm::vec3 getVertexPosition(glm::vec3 right, glm::vec3 up, glm::vec3 base, float radius, float theta){
   return base + radius * cos(theta) * up + radius * sin(theta) * right;
 }
 
@@ -123,8 +111,8 @@ std::vector<Vertex> VRPoint::getPathlineVerts()
   for(int i = 0; i < positions.size() -1; i++){
     glm::vec3 forward = positions[i+1] - positions[i];
     glm::vec3 wup = glm::vec3(0, 0, 1);
-    glm::vec3 right = wup.cross(forward).direction();
-    glm::vec3 up = forward.cross(right).direction();
+    glm::vec3 right = glm::normalize(glm::cross(wup, forward));
+    glm::vec3 up = glm::normalize(glm::cross(forward,right));
     glm::vec2 col = getColor(i);
     for(int j = 0; j < steps_around; j++){
       points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, (j * 6.28 / steps_around)), col));
@@ -148,8 +136,8 @@ std::vector<Vertex> VRPoint::getPathlineVerts()
   int i = positions.size()-1;
   glm::vec3 forward = positions[i] - positions[i-1];
   glm::vec3 wup = glm::vec3(0,0,1);
-  glm::vec3 right = wup.cross(forward).direction();
-  glm::vec3 up = forward.cross(right).direction();
+  glm::vec3 right = glm::normalize(glm::cross(wup, forward));
+  glm::vec3 up = glm::normalize(glm::cross(forward,right));
   glm::vec2 col = getColor(i);
   for(int j = 0; j < steps_around; j++){
     points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, j * 1.0 / steps_around), col));
@@ -172,7 +160,7 @@ float VRPoint::totalPathLength()
 {
   float totalDistance = 0;
   for(int i = 0; i < positions.size() - 1; i++){
-    float d = (positions[i] - positions[i+1]).magnitude();
+    float d = glm::length(positions[i] - positions[i+1]);
     totalDistance += d;
   }
   return totalDistance;
@@ -186,7 +174,7 @@ bool VRPoint::withinDistance(VRPoint& other, double distance)
   double d = distance * distance;
   for(int i = 0; i < positions.size(); i++){
     for(int j = 0; j < other.positions.size(); j++){
-      float dist = (positions[i] - other.positions[j]).magnitude();
+      float dist = glm::length(positions[i] - other.positions[j]);
       if ( dist < distance){
         return true;
       }

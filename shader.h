@@ -2,6 +2,8 @@
 #include <GL/gl.h>
 #include <string>
 #include <vrg3d/VRG3D.h>
+#include <glm/glm.hpp>
+
 
 class MyShader{
 public:

@@ -57,10 +57,10 @@ LIBS = -Xlinker --start-group  -Xlinker -ldl  -Xlinker -lX11 -Xlinker \
 
 all: dino path-filter
 
-dino: obj/main.o obj/pointmanager.o obj/vrpoint.o obj/dummy.o obj/shader.o obj/animationcontroller.o obj/filter.o
+dino: obj/main.o obj/pointmanager.o obj/vrpoint.o obj/shader.o obj/animationcontroller.o obj/filter.o
 	$(CPP) $(LDFLAGS) -o dino $^ $(LIB_DIRS) $(LIBS)
 
-path-filter: obj/pathfilter.o obj/pointmanager.o obj/vrpoint.o obj/dummy.o obj/filter.o obj/shader.o
+path-filter: obj/pathfilter.o obj/pointmanager.o obj/vrpoint.o obj/filter.o obj/shader.o
 	$(CPP) $(LDFLAGS) -o path-filter $^ $(LIB_DIRS) $(LIBS)
 
 test: obj/testmain.o

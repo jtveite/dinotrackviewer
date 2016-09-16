@@ -2,7 +2,8 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 
 MyShader::MyShader(std::string vertName, std::string geoName, std::string fragName){
@@ -60,7 +61,7 @@ void MyShader::setShaders(std::string vertName, std::string geoName, std::string
 
 void MyShader::setMatrix4(std::string argument, glm::mat4 mat)
 {
-  float* vals = mat;
+  float* vals = glm::value_ptr(mat);
   GLint loc = glGetUniformLocation(program, argument.c_str());
   glUniformMatrix4fv(loc, 1, GL_TRUE, vals);
 }

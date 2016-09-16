@@ -48,9 +48,10 @@ void PointManager::ReadFile(std::string fileName, bool debug)
           glm::vec3 lower(x,y,z);
           iss >> x >> y >> z;
           glm::vec3 upper(x,y,z);
-          AABox box (lower.min(upper), upper.max(lower));
+          // REDO THE BOXES
+          //AABox box (lower, upper);//think about readding checks for lower/upper
           //printf("Read box %f,%f,%f:%f,%f,%f\n", lower.x, lower.y, lower.z, upper.x, upper.y, upper.z );
-          boxes.push_back(box);
+          //boxes.push_back(box);
           continue;
         }
         iss >> id;
@@ -71,7 +72,7 @@ void PointManager::ReadFile(std::string fileName, bool debug)
           idx++;
           if(idx == 3){
             idx = 0;
-            p.AddPoint(glm::vec3(arr));
+            p.AddPoint(glm::vec3(arr[0], arr[1], arr[2]));
           }
         }
         points.push_back(p);
@@ -88,8 +89,8 @@ void PointManager::ReadFile(std::string fileName, bool debug)
       if (points[i].steps() > timeSteps){
         timeSteps = points[i].steps();
       }
-      minV = minV.min(points[i].positions[0]);
-      maxV = maxV.max(points[i].positions[0]);
+      minV = glm::min(minV, points[i].positions[0]);
+      maxV = glm::max(maxV, points[i].positions[0]);
     }
     
 
@@ -235,6 +236,7 @@ void PointManager::retestVisible(){
 
 
 void PointManager::DrawBoxes(RenderDevice* rd){
+  return;
   for(int i = 0; i < boxes.size(); i++){
     AABox box = boxes[i];
     float gray = 0.4;
