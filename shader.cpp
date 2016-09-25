@@ -4,6 +4,11 @@
 #include <sstream>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <vector>
+#include <iostream>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 
 MyShader::MyShader(std::string vertName, std::string geoName, std::string fragName){
@@ -77,10 +82,9 @@ void MyShader::bindShader(){
   if(hasTexture){
     GLint screenLoc = glGetUniformLocation(program, textureName.c_str());
     glUniform1i(screenLoc, 0);
-    GLint u = texture->openGLTextureTarget();
-    glEnable(u);
+    glEnable(textureTarget);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(u, texture->openGLID());
+    glBindTexture(textureTarget, textureID);
   }
 
 }
@@ -129,9 +133,24 @@ void MyShader::checkProgramError(){
 }
 
 void MyShader::loadTexture(std::string argument, std::string fileName){
- // texture = G3D::Texture::fromFile(fileName);
- // printf("Texture target: %d, texture id: %d\n", texture->openGLTextureTarget(), texture->openGLID());
-  texture = G3D::Texture::fromFile(fileName);
+  int w, h, comp;
+  unsigned char* image = stbi_load(fileName.c_str(), &w, &h, &comp, 0);
+  textureTarget = GL_TEXTURE_2D;
+  glGenTextures(1, &textureID);
+  glBindTexture(GL_TEXTURE_2D, textureID);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  if (comp == 3){
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+  }
+  else if (comp == 4){
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+  }
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+  stbi_image_free(image);
+
+
   textureName = argument;
   hasTexture = true;
 }

@@ -1,4 +1,3 @@
-#include <vrg3d/VRG3D.h>
 #include <vector>
 #include <glm/glm.hpp>
 
@@ -8,7 +7,6 @@
 #ifndef VRPOINT_H
 #define VRPOINT_H
 
-using namespace G3D;
 
 class VRPoint {
 

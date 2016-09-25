@@ -3,7 +3,6 @@
 #include <glm/glm.hpp>
 
 
-using namespace G3D;
 
 VRPoint::VRPoint(int id)
 {
@@ -92,7 +91,7 @@ float VRPoint::GetDistance(int time, glm::vec3 point)
 
 
 glm::vec3 getVertexPosition(glm::vec3 right, glm::vec3 up, glm::vec3 base, float radius, float theta){
-  return base + radius * cos(theta) * up + radius * sin(theta) * right;
+  return base + radius * float(cos(theta)) * up + radius * float(sin(theta)) * right;
 }
 
 

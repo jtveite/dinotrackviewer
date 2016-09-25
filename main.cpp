@@ -1,9 +1,18 @@
-#include <vrg3d/VRG3D.h>
 #include "pointmanager.h"
 #include "animationcontroller.h"
 #include "filter.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
+#include <unordered_map>
+
+//MinVR includes
+#include <display/VRConsoleNode.h>
+#include <main/VRMain.h>
+#include <main/VREventHandler.h>
+#include <main/VRRenderHandler.h>
+#include <math/VRMath.h>
 
 #define PROFILING
 #undef PROFILING
@@ -12,15 +21,20 @@
 #include "gperftools/profiler.h"
 #endif
 
-using namespace G3D;
+#include <GL/gl.h>
+
 
 enum struct Mode { STANDARD, ANIMATION, FILTER, SLICES};
 
-class DinoApp : public VRApp
+glm::mat4 VRMtoGLM(VRMatrix4 vrm){
+  return glm::make_mat4(vrm.m);
+}
+
+
+class DinoApp : public MinVR::VREventHandler, public MinVR::VRRenderHandler
 {
 public:
-  DinoApp(std::string setup, std::string dataFile, std::string pathFile, bool showAllPaths = false) : VRApp(),
-  ac()
+  DinoApp(std::string setup, std::string dataFile, std::string pathFile, int argc, char**argv,  bool showAllPaths = false) : _vrMain(NULL)
   {
   
     std::string profFile = "/users/jtveite/d/prof/profile-" + setup;
@@ -28,25 +42,35 @@ public:
     ProfilerStart(profFile.c_str());
 #endif
 
-
-    Log *dinolog = new Log("dino-log.txt");
-    init(setup, dinolog);
-    _mouseToTracker = new MouseToTracker(getCamera(), 2);
+    _vrMain = new MinVR::VRMain();
+    _vrMain->addEventHandler(this);
+    _vrMain->addRenderHandler(this);
+    _vrMain->initialize(argc, argv);
+    //_mouseToTracker = new MouseToTracker(getCamera(), 2);
     frameTime = clock();
 
 //    pm.ReadFile("/users/jtveite/data/jtveite/slices-130.out");
 //    pm.ReadFile("/users/jtveite/dinotrackviewer/test-data");
     pm.ReadFile(dataFile, true);
-    pm.SetupDraw(showAllPaths);
+    
+   /* 
+    int maj,min;
+    glGetIntegerv(GL_MAJOR_VERSION, &maj);
+    glGetIntegerv(GL_MINOR_VERSION, &min);
+    const unsigned char* s = glGetString(GL_VERSION);
+    printf("GL Version %d.%d    %d\n", maj, min, GL_MAJOR_VERSION);
+    printf("alternate version %s.\n", s);
+    std::cout << std::endl;
+*/
+
+ //   pm.SetupDraw(showAllPaths);
     if (pathFile != "" && pathFile != "a"){
       pm.ReadPathlines(pathFile);
     }
-    Matrix3 scale = Matrix3::fromDiagonal(Vector3(20, 20, 20));
-    CoordinateFrame scaleC (scale);
-    CoordinateFrame rotate = CoordinateFrame::fromXYZYPRDegrees(
-      2, 0, -6,
-      -90, -90, 180);
-    _owm = rotate * scale;
+    glm::mat4 scale = glm::scale(glm::mat4(), glm::vec3(20,20,20));
+    glm::mat4 translate = glm::translate(glm::mat4(), glm::vec3(2, 0, -6));
+    glm::mat4 rotate = glm::eulerAngleYXZ(-90, -90, 180);
+    _owm = translate * rotate * scale;
     ac.setFrameCount(pm.getLength());
     ac.setSpeed(15);
 
@@ -58,9 +82,10 @@ public:
     }
 
     _slicer = new SliceFilter();
-
   }
   virtual ~DinoApp() {
+    _vrMain->shutdown();
+    delete _vrMain;
 #ifdef PROFILING
     ProfilerFlush();
     ProfilerStop();
@@ -68,25 +93,20 @@ public:
   }
 
   //general skeleton of user input from demo app
-  void doUserInput(Array<VRG3D::EventRef> &events)
+  virtual void onVREvent(const std::string &eventName, VRDataIndex *eventData)
   {
-
-    Array<VRG3D::EventRef> newEvents;
-    _mouseToTracker->doUserInput(events, newEvents);
-    events.append(newEvents);
-
-    for (int i = 0; i < events.size(); i++) {
-
-      std::string eventName = events[i]->getName();
-      if (endsWith(events[i]->getName(), "_Tracker")) {
-        if (_trackerFrames.containsKey(events[i]->getName())){
-          _trackerFrames[events[i]->getName()] = events[i]->getCoordinateFrameData(); 
+      /*
+      if (endsWith(eventName, "_Tracker")) {
+        auto search = _trackerFrames.find(eventName);//ex from cppreference.com
+        //Probably don't need to search since implementation seems to do it?
+        if (search != _trackerFrames.end())){
+          _trackerFrames[eventName] = events[i]->getglm::mat4Data(); 
         }
         else {
-          _trackerFrames.set(events[i]->getName(), events[i]->getCoordinateFrameData());
+          _trackerFrames[eventName] = events[i]->getglm::mat4Data());
         }
-      }
-      else if (eventName == "B09_down" || eventName == "kbd_1_down"){
+      }*/
+      if (eventName == "B09_down" || eventName == "kbd_1_down"){
         mode = Mode::STANDARD;
       }
       else if (eventName == "B10_down" || eventName == "kbd_2_down"){
@@ -231,21 +251,38 @@ public:
         pm.SetFilter(_slicer);
       }
 
-      else if (beginsWith(eventName, "aimo")){}
-      else if (eventName == "SynchedTime"){}
+      //else if (beginsWith(eventName, "aimo")){}
+      //else if (eventName == "SynchedTime"){}
       else{
-        //std::cout << eventName << std::endl;
+        std::cout << eventName << std::endl;
       }
 
 
 
-    }
     
   }
  
 
-  void doGraphics(RenderDevice *rd)
-  {
+  void onVRRenderScene(VRDataIndex *renderState, MinVR::VRDisplayNode *callingNode)
+  { 
+    if (renderState->exists("IsConsole", "/")) {
+      MinVR::VRConsoleNode * console = dynamic_cast<MinVR::VRConsoleNode*>(callingNode);
+      console->println("console output...");
+      printf("console");
+      return;
+    }
+    if (needsSetup){
+      needsSetup = false;
+
+      const unsigned char* s = glGetString(GL_VERSION);
+      printf("glv %s\n", s);
+      glewInit();
+      GLuint test;
+      glGenBuffers(1, &test);
+
+      pm.SetupDraw();
+
+    }
     _lastFrame = ac.getFrame();
     float t = _lastFrame;
     //std::cout << "Rendering frame: " << _frameCounter << std::endl;
@@ -253,12 +290,12 @@ public:
     //Do rotation of trackers if needed
     //std::string targetTracker = "Mouse1_Tracker";
     //std::string targetTracker = "Wand_Tracker";
-    Array<std::string> trackerNames = _trackerFrames.getKeys();
-    for (int i = 0; i < trackerNames.size(); i++){
-      CoordinateFrame trackerFrame = _trackerFrames[trackerNames[i]];
-      if (trackerNames[i] == targetTracker){
+    for (auto kv : _trackerFrames){
+      std::string trackerName = kv.first;
+      glm::mat4 trackerFrame = kv.second;
+      if (trackerName == targetTracker){
         if (_moving){
-          CoordinateFrame amountMoved = trackerFrame * _lastTrackerLocation.inverse();
+          glm::mat4 amountMoved = trackerFrame * glm::inverse( _lastTrackerLocation);
           _owm = amountMoved * _owm;
         }
         _lastTrackerLocation = trackerFrame;
@@ -268,28 +305,27 @@ public:
     }
     if (_placePathline){
       _placePathline = false;
-    //  CoordinateFrame oldSpace = _lastTrackerLocation * _owm.inverse();
+    //  glm::mat4 oldSpace = _lastTrackerLocation * _owm.inverse();
      // Vector3 location = oldSpace.translation;
-      Vector3 location = _lastTrackerLocation.translation;
+      //glm::vec3 location = _lastTrackerLocation.translation;
       //location = _lastTrackerLocation.pointToWorldSpace(Vector3(0,0,0));
-      Matrix4 owm = _owm.toMatrix4();
-      Vector4 l = owm.inverse() * Vector4(location, 1.0);
-      glm::vec3 ll (l.x, l.y, l.z);
-      pm.AddPathline(ll, t);
+      //Matrix4 owm = _owm.toMatrix4();
+      //Vector4 l = owm.inverse() * Vector4(location, 1.0);
+      //glm::vec3 ll (l.x, l.y, l.z);
+      //pm.AddPathline(ll, t);
       //std::cout << l.xyz() << std::endl;
       //printf("placing a pathline at %f, %f, %f\n", location.x, location.y, location.z);
       //printf("placing a pathline at %f, %f, %f\n", location.x, location.y, location.z);
     }
-
+      /*
       Vector3 location = _lastTrackerLocation.translation;
       //location = _lastTrackerLocation.pointToWorldSpace(Vector3(0,0,0));
       Matrix4 owm = _owm.toMatrix4();
       Vector4 l = owm.inverse() * Vector4(location, 1.0);
       glm::vec3 ll (l.x, l.y, l.z);
-      pm.TempPathline(ll, t);
-    
+      //pm.TempPathline(ll, t);
+      */
 
-    rd->pushState();
     //rd->setObjectToWorldMatrix(_virtualToRoomSpace);
     int gl_error;
     while((gl_error = glGetError()) != GL_NO_ERROR)
@@ -297,44 +333,58 @@ public:
 
       std::cout << "Flushing gl errors " << gl_error << std::endl;
     }
-   
-    rd->pushState();
-
-    rd->setObjectToWorldMatrix(_owm);
-    Matrix4 mvp = rd->invertYMatrix() * rd->modelViewProjectionMatrix();
+    
+    glm::mat4 P;
+    glm::mat4 V;
+    if (renderState->exists("ProjectionMatrix", "/")){
+      P = VRMtoGLM(renderState->getValue("ProjectionMatrix", "/"));
+      V = VRMtoGLM(renderState->getValue("ViewMatrix", "/"));
+    }
     float *hack;
-    hack = mvp;
-    glm::mat4 mmvp = glm::make_mat4(hack);
-    //std::cout << t << std::endl;
-    pm.Draw(rd, t, mmvp);
-    rd->popState();
+    hack = glm::value_ptr(_owm);
+    glm::mat4 M = glm::make_mat4(hack);
 
-    Vector3 hp = getCamera()->getHeadPos();
-   // printf("Head position: %f, %f, %f\n", hp.x, hp.y, hp.z);
-    Vector3 lv = getCamera()->getLookVec();
+    
+    for(int i = 0; i < 4 ; i++){
+      for(int j = 0; j < 4; j++){
+       // printf("%3f  ", P[i][j]); 
+      }
+     // printf("\n");
+    }
+
+    glm::mat4 mvp = P * V * M;
+
+
+    
+    //std::cout << t << std::endl;
+    pm.Draw(t, mvp);
+
  
     //Draw a small ball at the tracker location.
     //
-    rd->pushState();
-    rd->setObjectToWorldMatrix(CoordinateFrame());
-    Sphere s (_lastTrackerLocation.translation, 0.02);
-    Draw::sphere(s, rd, Color3::red());
-    rd->popState();
+    //Sphere s (_lastTrackerLocation.translation, 0.02);
+    //Draw::sphere(s, rd, Color3::red());
 
  //  printf("Look Vector: %f, %f, %f\n", lv.x, lv.y, lv.z);
 
-    rd->popState();
     clock_t newTime = clock();
     frameTime = newTime;
   }
 
+  void run(){
+    while(true) {
+      _vrMain->mainloop();
+    }
+  }
+
 protected:
+  bool needsSetup = true;
+  MinVR::VRMain *_vrMain;
   PointManager pm;
-  MouseToTrackerRef _mouseToTracker;
-  CoordinateFrame _virtualToRoomSpace;
-  CoordinateFrame _owm;
-  CoordinateFrame _lastTrackerLocation;
-  Table<std::string, CoordinateFrame> _trackerFrames;
+  glm::mat4 _virtualToRoomSpace;
+  glm::mat4 _owm;
+  glm::mat4 _lastTrackerLocation;
+  std::unordered_map<std::string, glm::mat4> _trackerFrames;
   bool _moving;
   clock_t frameTime;
   AnimationController ac;
@@ -348,7 +398,7 @@ protected:
 
 int main(int argc, char **argv )
 {
-  std::string setup;
+  std::string setup = "desktop.xml";
   std::string dataFile;
   std::string pathsFile;
   bool showAllPaths = false;
@@ -358,11 +408,12 @@ int main(int argc, char **argv )
   }
   if(argc >= 3)
   {
-    dataFile = std::string(argv[2]);
+    //dataFile = std::string(argv[2]);
   }
   else{
     dataFile = "/users/jtveite/data/jtveite/slices-68.out";
   }
+    dataFile = "/users/jtveite/data/jtveite/slices-68.out";
   if (argc >= 4)
   {
     pathsFile = std::string(argv[3]);
@@ -375,7 +426,7 @@ int main(int argc, char **argv )
     showAllPaths = true;
   }
     
-  DinoApp *app = new DinoApp(setup, dataFile, pathsFile,  showAllPaths);
+  DinoApp *app = new DinoApp(setup, dataFile, pathsFile, argc, argv, showAllPaths);
   app->run();
   return 0;
 

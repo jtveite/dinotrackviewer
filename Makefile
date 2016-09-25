@@ -1,6 +1,6 @@
 # Makefile base copied from vdemo
 CPP = g++
-CPPFLAGS = -Wall -g -std=c++0x -Og
+CPPFLAGS = -Wall -g -std=c++0x 
 LDFLAGS = 
 
 TARGET = dino
@@ -21,8 +21,8 @@ else
 ifeq ($(shell if [ -d /gpfs/runtime/opt/cave/ccv ] ; then echo 1; fi), 1)
 
   # Yurt
-  EXTRA_INCLUDES = -I$(G)/install_linux/include -I$(G)/install_linux/include/vrg3d
-  EXTRA_LIBS = -L$(G)/install_linux/lib -L$(G)/install_linux/lib/vrg3d
+  EXTRA_INCLUDES = -I$(G)/install_linux/include -I$(G)/install_linux/include/vrg3d -I/users/jtveite/minvr/MinVR2/src
+  EXTRA_LIBS = -L$(G)/install_linux/lib -L$(G)/install_linux/lib/vrg3d -L/users/jtveite/minvr/MinVR2/build/lib
   SCALABLE_LIB = -Xlinker -lmplEasyBlendSDK
 
 else
@@ -46,11 +46,11 @@ INCLUDE_DIRS = -I. $(EXTRA_INCLUDES)
 
 LIB_DIRS = $(EXTRA_LIBS)
 
-LIBS = -Xlinker --start-group  -Xlinker -ldl  -Xlinker -lX11 -Xlinker \
+LIBS = -Xlinker -lMinVR -Xlinker --start-group  -Xlinker -ldl  -Xlinker -lX11 -Xlinker \
 	-lXext  -Xlinker -lpthread  -Xlinker -lz  -Xlinker -ljpeg  -Xlinker \
-	-lpng  -Xlinker -lzip  -Xlinker -lSDL -Xlinker -lvrg3d  -Xlinker \
-	-lavutil  -Xlinker -lavformat  -Xlinker -lavcodec  -Xlinker -lGLG3D \
-	-Xlinker -lG3D -Xlinker -lGLU -Xlinker -lGL -Xlinker -lvrpn \
+	-lpng  -Xlinker -lzip  -Xlinker -lSDL  -Xlinker \
+	-lavutil  -Xlinker -lavformat  -Xlinker -lavcodec  \
+	-Xlinker -lGLEW -Xlinker -lGLU -Xlinker -lGL -Xlinker -lvrpn \
 	-Xlinker -lglut -Xlinker -lXmu $(SCALABLE_LIB) \
 	-Xlinker --end-group \
 	-lprofiler

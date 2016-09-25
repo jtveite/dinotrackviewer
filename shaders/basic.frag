@@ -13,4 +13,5 @@ void main()
   float diffuse = 1. - ambient;
   vec4 baseColor = texture(colorMap, gsColor);
   color = baseColor * (ambient + diffuse * lambertian);
+  color = vec4(1.);
 }

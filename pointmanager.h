@@ -1,17 +1,16 @@
 #ifndef POINTMANAGER_H
 #define POINTMANAGER_H
+#include <GL/glew.h>
+#include <GL/gl.h>
 #include <vector>
 #include <string>
 #include "vrpoint.h"
-#include <vrg3d/VRG3D.h>
 #include "vertex.h"
-#include "shader.h"
 #include "filter.h"
-#include <GL/gl.h>
+#include "shader.h"
 #include <glm/glm.hpp>
 
 
-using namespace G3D;
 
 
 class PointManager
@@ -21,7 +20,7 @@ public:
     void ReadFile(std::string fileName, bool debug = false);
     void SetupDraw(bool allPaths = false);
     void ReadPathlines(std::string fileName);
-    void Draw(RenderDevice *rd, int time, glm::mat4 mvp);
+    void Draw(int time, glm::mat4 mvp);
     void AddPathline(glm::vec3 pos, int time);
     void AddPathline(VRPoint& point);
     void TempPathline(glm::vec3 pos, int time);
@@ -31,7 +30,7 @@ public:
     std::vector<VRPoint> points;
 
 private:
-    void DrawBoxes(RenderDevice *rd);
+    void DrawBoxes();
     void DrawPoints(int time, glm::mat4 mvp);
     void DrawPaths(int time, glm::mat4 mvp);
    
@@ -52,7 +51,7 @@ private:
     std::vector<Vertex> tempPath;
     bool updatePaths;
 
-    std::vector<AABox> boxes;
+//    std::vector<AABox> boxes;
 
 
     std::vector<int> pathlines;
@@ -60,14 +59,12 @@ private:
     GLuint buffer;
     GLuint pathBuffer;
     GLuint tempPathBuffer;
-    bool useSeparateBuffers = true;
+    bool useSeparateBuffers = false;
     GLuint* pointBuffers;
     GLuint vao;
     MyShader pointShader;
     MyShader lineShader;
     std::vector< std::vector<Vertex> > pointLocations;
-    Image3::Ref colorTexture;
-    Image3::Ref pathTexture;
 
     glm::vec3 minV;
     glm::vec3 maxV;

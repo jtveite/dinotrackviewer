@@ -1,9 +1,7 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <string>
-#include <vrg3d/VRG3D.h>
 #include <glm/glm.hpp>
-
 
 class MyShader{
 public:
@@ -41,7 +39,9 @@ private:
   
   void setShaders(std::string, std::string, std::string);
   
-  G3D::Texture::Ref texture;
+
+  GLuint textureTarget;
+  GLuint textureID;
   std::string textureName;
   GLuint vertShader;
   GLuint geomShader;

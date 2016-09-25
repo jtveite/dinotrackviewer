@@ -99,8 +99,6 @@ void PointManager::ReadFile(std::string fileName, bool debug)
 
 void PointManager::SetupDraw(bool allPaths){
     clock_t startTime = clock();
-    colorTexture = Image3::fromFile("colormap.jpg");
-    pathTexture = Image3::fromFile("pathmap.jpg");
   
 
 
@@ -117,7 +115,6 @@ void PointManager::SetupDraw(bool allPaths){
     glGenBuffers(1, &buffer);
     glGenBuffers(1, &pathBuffer);
     glGenBuffers(1, &tempPathBuffer);
-    glGenVertexArrays(1, &vao);
     pointShader = MyShader("shaders/basic.vert", "shaders/basic.geom", "shaders/basic.frag");
     pointShader.checkErrors();
     pointShader.loadTexture("colorMap", "colormap.jpg");
@@ -235,13 +232,13 @@ void PointManager::retestVisible(){
 }
 
 
-void PointManager::DrawBoxes(RenderDevice* rd){
+void PointManager::DrawBoxes(){
   return;
-  for(int i = 0; i < boxes.size(); i++){
-    AABox box = boxes[i];
+/*  for(int i = 0; i < boxes.size(); i++){
+    //AABox box = boxes[i];
     float gray = 0.4;
-    Draw::box(box, rd, Color4::clear(), Color4(gray, gray, gray, 1.));
-  }
+    //Draw::box(box, rd, Color4::clear(), Color4(gray, gray, gray, 1.));
+  }*/
 }
 
 void PointManager::DrawPoints(int time, glm::mat4 mvp){
@@ -331,16 +328,12 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
     lineShader.unbindShader();
 }
 
-void PointManager::Draw(RenderDevice *rd, int time, glm::mat4 mvp){
+void PointManager::Draw(int time, glm::mat4 mvp){
     numFramesSeen++;
     clock_t startTime = clock();
-    rd->pushState();
-    DrawBoxes(rd);
+    DrawBoxes();
     //printf("Time after setting points: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
-    rd->beginOpenGL();
     DrawPoints(time, mvp);
     DrawPaths(time, mvp);
-    rd->endOpenGL();
-    rd->popState();
     //printf("Time end of frame: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
    }
