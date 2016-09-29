@@ -1,14 +1,20 @@
 #ifndef POINTMANAGER_H
 #define POINTMANAGER_H
+
 #include <GL/glew.h>
+#if defined(__APPLE__)
+#include <OpenGL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
+
 #include <vector>
 #include <string>
 #include "vrpoint.h"
 #include "vertex.h"
 #include "filter.h"
 #include "shader.h"
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 
 
 

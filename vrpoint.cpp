@@ -1,6 +1,5 @@
 #include "vrpoint.h"
 #include <stdio.h>
-#include <glm/glm.hpp>
 
 
 

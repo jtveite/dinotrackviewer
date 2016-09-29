@@ -1,5 +1,5 @@
 #include "filter.h"
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 
 bool Filter::checkPoint(VRPoint& p)
 {

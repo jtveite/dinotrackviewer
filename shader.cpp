@@ -2,8 +2,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "glm/gtc/type_ptr.hpp"
 #include <vector>
 #include <iostream>
 

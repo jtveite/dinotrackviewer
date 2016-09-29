@@ -1,7 +1,11 @@
 #include <GL/glew.h>
+#if defined(__APPLE__)
+#include <OpenGL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 #include <string>
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 
 class MyShader{
 public:

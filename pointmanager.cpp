@@ -7,9 +7,10 @@
 #include <sstream>
 #include <cstdlib>
 
-#include <glm/glm.hpp>
-
+#ifdef PROFILING
 #include "gperftools/profiler.h"
+#endif
+
 #include "fast_atof.c"
 
 PointManager::PointManager()

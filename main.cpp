@@ -1,10 +1,12 @@
 #include "pointmanager.h"
 #include "animationcontroller.h"
 #include "filter.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/euler_angles.hpp>
+
+#include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/euler_angles.hpp"
+
 #include <unordered_map>
 
 //MinVR includes
@@ -21,7 +23,11 @@
 #include "gperftools/profiler.h"
 #endif
 
-#include <GL/gl.h>
+#if defined(__APPLE__)
+  #include <OpenGL/OpenGL.h>
+#else
+  #include <GL/gl.h>
+#endif
 
 
 enum struct Mode { STANDARD, ANIMATION, FILTER, SLICES};
