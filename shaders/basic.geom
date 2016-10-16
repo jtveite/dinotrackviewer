@@ -18,7 +18,7 @@ vec4 get_vertex(float theta, float phi){
 }
 
 vec4 transform(vec4 i){
-  return mvp *  i;
+  return mvp * i;
 }
 
 void main ()

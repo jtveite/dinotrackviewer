@@ -36,6 +36,8 @@ set(resource_files
   desktop.xml
 )
 
+set (MINVR_ROOT /Users/jtveite/research/minvr/test)
+
 file(COPY ${resource_files} DESTINATION ${CMAKE_BINARY_DIR}/bin)
 
 set_source_files_properties(vertex.h PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -46,9 +48,9 @@ find_library(MinVR ../MinVR2/build/lib)
 
 include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_DIRS})
-include_directories(../MinVR2/src)
+include_directories(${MINVR_ROOT}/src)
 
-link_directories(/Users/jtveite/research/minvr/MinVR2/build/lib)
+link_directories(${MINVR_ROOT}/build/lib)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 

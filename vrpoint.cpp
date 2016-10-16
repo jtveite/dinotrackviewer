@@ -140,9 +140,20 @@ std::vector<Vertex> VRPoint::getPathlineVerts()
   for(int j = 0; j < steps_around; j++){
     points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, j * 1.0 / steps_around), col));
   }
+    
+    std::vector<int> triIndices;
+    for (int i =0 ; i < indices.size(); i += 4){
+        triIndices.push_back(i);
+        triIndices.push_back(i+1);
+        triIndices.push_back(i+2);
+        
+        triIndices.push_back(i);
+        triIndices.push_back(i+2);
+        triIndices.push_back(i+3);
+    }
 
-  for(int i = 0; i < indices.size(); i++){
-    v.push_back(points[indices[i]]);
+  for(int i = 0; i < triIndices.size(); i++){
+    v.push_back(points[triIndices[i]]);
   }
   return v;
 }

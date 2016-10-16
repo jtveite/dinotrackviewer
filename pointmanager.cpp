@@ -20,6 +20,10 @@ PointManager::PointManager()
 
 void PointManager::ReadFile(std::string fileName, bool debug)
 {
+    
+    if (debug){
+      std::cout << "Reading file: " << fileName << std::endl;
+    }
 
     clock_t startTime = clock();
     std::ios_base::sync_with_stdio(false);
@@ -28,6 +32,7 @@ void PointManager::ReadFile(std::string fileName, bool debug)
     file.open(fileName, std::ios::in);
     int linecount = 0;
     //VERY VERY TEMPORARY
+
      
     while(std::getline(file, line))
     {
@@ -112,6 +117,11 @@ void PointManager::SetupDraw(bool allPaths){
    
    
     retestVisible();
+    
+    //GLuint vao;
+    GLuint tempVar;
+    glGenVertexArrays(1, &tempVar);
+    glBindVertexArray(tempVar);
 
     glGenBuffers(1, &buffer);
     glGenBuffers(1, &pathBuffer);
@@ -243,10 +253,20 @@ void PointManager::DrawBoxes(){
 }
 
 void PointManager::DrawPoints(int time, glm::mat4 mvp){
+    int err;
+    if ((err = glGetError()) != 0){
+        printf("Error %d at the start of Points\n", err);
+    }
     //Bind shader and set args
     pointShader.bindShader();
+    if ((err = glGetError()) != 0){
+        printf("Error %d after binding shader init\n", err);
+    }
     pointShader.setMatrix4("mvp", mvp);
     pointShader.setFloat("rad", pointSize);
+    if ((err = glGetError()) != 0){
+        printf("Error %d after binding shaders\n", err);
+    }
 
     //Bind and resend buffer data
     int numElements;
@@ -267,16 +287,28 @@ void PointManager::DrawPoints(int time, glm::mat4 mvp){
       Vertex* bufferData = pointArray->data();
       glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_DYNAMIC_DRAW);
     }
+    if ((err = glGetError()) != 0){
+        printf("Error %d after binding buffers\n", err);
+    }
 
     //set vertex attributes
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
+    if ((err = glGetError()) != 0){
+        printf("Error %d at a\n", err);
+    }
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
-
+    
+    if ((err = glGetError()) != 0){
+        printf("Error %d after vertex arrayss\n", err);
+    }
 
     //Draw the points
     glDrawArrays(GL_POINTS, 0, numElements);
+    if ((err = glGetError()) != 0){
+        printf("Error %d after drawarrays\n", err);
+    }
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     //Unbind shader
@@ -285,18 +317,28 @@ void PointManager::DrawPoints(int time, glm::mat4 mvp){
 
  
 void PointManager::DrawPaths(int time, glm::mat4 mvp){
+    int err;
+    if ((err = glGetError()) != 0){
+        printf("Error %d at the start of pathsw\n", err);
+    }
     //Bind shader and set args
     lineShader.bindShader();
     lineShader.setMatrix4("mvp", mvp);
+    if ((err = glGetError()) != 0){
+        printf("Error %d at a\n", err);
+    }
 
     //Bind buffer, resend data if needed
     glBindBuffer(GL_ARRAY_BUFFER, pathBuffer);
     //updatePaths ensures that we only write new paths to the gpu when needed
+    int bufferSize = pathVertices.size() * sizeof(Vertex);
     if (updatePaths){
       updatePaths = false;
-      int bufferSize = pathVertices.size() * sizeof(Vertex);
       Vertex* bufferData = pathVertices.data();
       glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_DYNAMIC_DRAW);
+    }
+    if ((err = glGetError()) != 0){
+        printf("Error %d at b\n", err);
     }
 
     //set vertex attributes
@@ -304,10 +346,14 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
-
+    if ((err = glGetError()) != 0){
+        printf("Error %d at c\n", err);
+    }
     //Draw points
-    glMultiDrawArrays(GL_QUADS, pathOffsets.data(), pathCounts.data(), pathOffsets.size());
-    
+    glDrawArrays(GL_TRIANGLES,  0, bufferSize);
+    if ((err = glGetError()) != 0){
+        printf("Error %d at d\n", err);
+    }
 
     //Draw temporary paths
     if (tempPath.size() > 0){
@@ -322,9 +368,11 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
       glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
 
 
-      glDrawArrays(GL_QUADS, 0, tempPath.size());
+      glDrawArrays(GL_TRIANGLES, 0, tempPath.size());
     }
-
+    if ((err = glGetError()) != 0){
+        printf("Error %d at e\n", err);
+    }
     //unbind shader
     lineShader.unbindShader();
 }
@@ -332,9 +380,22 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
 void PointManager::Draw(int time, glm::mat4 mvp){
     numFramesSeen++;
     clock_t startTime = clock();
+    int err;
+    if ((err = glGetError()) != 0){
+        printf("Error %d at the start of Draw\n", err);
+    }
     DrawBoxes();
     //printf("Time after setting points: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
+    if ((err = glGetError()) != 0){
+        printf("Error %d after boxes\n", err);
+    }
     DrawPoints(time, mvp);
+    if ((err = glGetError()) != 0){
+        printf("Error %d after points\n", err);
+    }
     DrawPaths(time, mvp);
+    if ((err = glGetError()) != 0){
+        printf("Error %d after paths\n", err);
+    }
     //printf("Time end of frame: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
    }

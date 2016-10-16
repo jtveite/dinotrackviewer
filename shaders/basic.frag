@@ -1,4 +1,6 @@
-varying out vec4 color;
+#version 330
+
+out vec4 color;
 in vec2 gsColor;
 in vec4 normal;
 in vec4 position;

@@ -77,14 +77,36 @@ void MyShader::setFloat(std::string argument, float val)
 }
 
 void MyShader::bindShader(){
-  glUseProgram(program);
+    int err;
+    if ((err = glGetError()) != 0){
+        printf("Error %d at start of bind shader\n", err);
+    }
+    glUseProgram(program);
+    if ((err = glGetError()) != 0){
+        printf("Error %d at use program\n", err);
+    }
   if(hasTexture){
-    GLint screenLoc = glGetUniformLocation(program, textureName.c_str());
-    glUniform1i(screenLoc, 0);
-    glEnable(textureTarget);
-    glActiveTexture(GL_TEXTURE0);
+      GLint screenLoc = glGetUniformLocation(program, textureName.c_str());
+      if ((err = glGetError()) != 0){
+          printf("Error %d at a\n", err);
+      }
+      glUniform1i(screenLoc, 0);
+      if ((err = glGetError()) != 0){
+          printf("Error %d at b\n", err);
+      }
+      //glEnable(textureTarget);
+      if ((err = glGetError()) != 0){
+          printf("Error %d at c\n", err);
+      }
+      glActiveTexture(GL_TEXTURE0);
+      if ((err = glGetError()) != 0){
+          printf("Error %d at d\n", err);
+      }
     glBindTexture(textureTarget, textureID);
   }
+    if ((err = glGetError()) != 0){
+        printf("Error %d at end of bind shader\n", err);
+    }
 
 }
 

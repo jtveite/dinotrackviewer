@@ -36,6 +36,14 @@ glm::mat4 VRMtoGLM(VRMatrix4 vrm){
   return glm::make_mat4(vrm.m);
 }
 
+void printMat4(glm::mat4 m){
+    for (int i = 0; i < 4; i++){
+        for(int j = 0; j < 4 ; j++){
+            printf("%f ", m[i][j]);
+        }
+        printf("\n");
+    }
+}
 
 class DinoApp : public MinVR::VREventHandler, public MinVR::VRRenderHandler
 {
@@ -75,7 +83,10 @@ public:
     }
     glm::mat4 scale = glm::scale(glm::mat4(), glm::vec3(20,20,20));
     glm::mat4 translate = glm::translate(glm::mat4(), glm::vec3(2, 0, -6));
-    glm::mat4 rotate = glm::eulerAngleYXZ(-90, -90, 180);
+      glm::mat4 rotate = glm::yawPitchRoll(0, 0, 0);
+      printMat4(scale);
+      printMat4(translate);
+      printMat4(rotate);
     _owm = translate * rotate * scale;
     ac.setFrameCount(pm.getLength());
     ac.setSpeed(15);
@@ -282,6 +293,7 @@ public:
 
       const unsigned char* s = glGetString(GL_VERSION);
       printf("glv %s\n", s);
+        glewExperimental = GL_TRUE;
       glewInit();
       GLuint test;
       glGenBuffers(1, &test);
@@ -346,23 +358,28 @@ public:
       P = VRMtoGLM(renderState->getValue("ProjectionMatrix", "/"));
       V = VRMtoGLM(renderState->getValue("ViewMatrix", "/"));
     }
+    else{
+        //P = glm::perspective(60., 1.5, 0.1, 100.);
+        //V = glm::lookAt(glm::vec3(0, 0, 0), glm::vec3(1, 0, 0), glm::vec3(0, 1, 0));
+        //V = glm::inverse(V);
+    }
     float *hack;
     hack = glm::value_ptr(_owm);
     glm::mat4 M = glm::make_mat4(hack);
 
-    
+      //M = glm::mat4();
     for(int i = 0; i < 4 ; i++){
       for(int j = 0; j < 4; j++){
-       // printf("%3f  ", P[i][j]); 
+        printf("%3f  ", M[i][j]);
       }
-     // printf("\n");
+      printf("\n");
     }
 
     glm::mat4 mvp = P * V * M;
 
 
     
-    //std::cout << t << std::endl;
+    std::cout << t << std::endl;
     pm.Draw(t, mvp);
 
  
@@ -419,7 +436,7 @@ int main(int argc, char **argv )
   else{
     dataFile = "/users/jtveite/data/jtveite/slices-68.out";
   }
-    dataFile = "/users/jtveite/data/jtveite/slices-68.out";
+    dataFile = "/Users/jtveite/research/minvr/dinotrackviewer/build/bin/slices-68-trimmed.out";
   if (argc >= 4)
   {
     pathsFile = std::string(argv[3]);

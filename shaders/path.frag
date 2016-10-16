@@ -1,5 +1,7 @@
-varying out vec4 color;
-varying in vec2 vertexColor;
+#version 330
+
+out vec4 color;
+in vec2 vertexColor;
 uniform sampler2D pathMap;
 
 void main()
