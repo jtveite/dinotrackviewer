@@ -291,10 +291,10 @@ public:
     if (needsSetup){
       needsSetup = false;
 
-      const unsigned char* s = glGetString(GL_VERSION);
-      printf("glv %s\n", s);
-        glewExperimental = GL_TRUE;
       glewInit();
+      const unsigned char* s = glGetString(GL_VERSION);
+      printf("OpenGL Version: %s\n", s);
+        glewExperimental = GL_TRUE;
       GLuint test;
       glGenBuffers(1, &test);
 
@@ -436,7 +436,7 @@ int main(int argc, char **argv )
   else{
     dataFile = "/users/jtveite/data/jtveite/slices-68.out";
   }
-    dataFile = "/Users/jtveite/research/minvr/dinotrackviewer/build/bin/slices-68-trimmed.out";
+    dataFile = "data/slices-68-trimmed.out";
   if (argc >= 4)
   {
     pathsFile = std::string(argv[3]);

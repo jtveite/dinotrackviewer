@@ -130,11 +130,17 @@ void MyShader::checkError(GLint sid){
   if (isCompiled == GL_FALSE){
     GLint maxLength = 0;
     glGetShaderiv(sid, GL_INFO_LOG_LENGTH, &maxLength);
+    printf("Expecting a %d character error.\n", maxLength);
     std::vector<GLchar> errorLog(maxLength);
     glGetShaderInfoLog(sid, maxLength, &maxLength, &errorLog[0]);
 
     std::cout << "Error compiling shader: " << std::endl;
-    printf("%s\n", &errorLog[0]);
+    if(maxLength > 0){
+      printf("%s\n", &errorLog[0]);
+    }
+    else{
+      printf("Couldn't get error properly.\n"); 
+    }
   }
 }
 

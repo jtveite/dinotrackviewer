@@ -36,7 +36,10 @@ set(resource_files
   desktop.xml
 )
 
-set (MINVR_ROOT /Users/jtveite/research/minvr/test)
+set (MINVR_ROOT /Users/jtveite/research/minvr/test CACHE STRING "Root
+directory for MinVR")
+
+
 
 file(COPY ${resource_files} DESTINATION ${CMAKE_BINARY_DIR}/bin)
 
@@ -44,7 +47,6 @@ set_source_files_properties(vertex.h PROPERTIES HEADER_FILE_ONLY TRUE)
 
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
-find_library(MinVR ../MinVR2/build/lib)
 
 include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_DIRS})
