@@ -3,13 +3,15 @@ project(dinotracks)
 
 
 set(dino_source_files
-  main.cpp
+  newmain.cpp
   pointmanager.cpp
   vrpoint.cpp
   shader.cpp
   animationcontroller.cpp
   filter.cpp
 )
+
+
 
 set(filter_source_files
   pathfilter.cpp
@@ -43,7 +45,7 @@ directory for MinVR")
 
 file(COPY ${resource_files} DESTINATION ${CMAKE_BINARY_DIR}/bin)
 
-set_source_files_properties(vertex.h PROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties(vertex.h GLUtil.hPROPERTIES HEADER_FILE_ONLY TRUE)
 
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
@@ -58,5 +60,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_executable(dino ${dino_source_files})
 add_executable(path-filter ${filter_source_files})
+add_executable(sogl vrexample.cpp)
 
 target_link_libraries(dino MinVR ${OPENGL_LIBRARIES}  ${GLEW_LIBRARIES} ${ALL_LIBS})
+target_link_libraries(sogl MinVR ${OPENGL_LIBRARIES}  ${GLEW_LIBRARIES} ${ALL_LIBS})
+target_link_libraries(path-filter ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES}
+${ALL_LIBS})

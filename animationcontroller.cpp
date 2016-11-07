@@ -21,6 +21,7 @@ void AnimationController::setFrameCount(int numFrames){
 }
 
 int AnimationController::getFrame(){
+  currFrame++;
   double currentTime = 0;
   if (playing){
     double time_passed = currentTime - startTime;

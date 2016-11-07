@@ -1,8 +1,12 @@
-#include <GL/glew.h>
+#pragma once
+
 #if defined(__APPLE__)
+#include <GL/glew.h>
 #include <OpenGL/gl.h>
 #else
+#include <GL/glew.h>
 #include <GL/gl.h>
+#include <GL/glu.h>
 #endif
 #include <string>
 #include "glm/glm.hpp"
@@ -34,10 +38,10 @@ public:
   void checkErrors();
   void checkError(GLint shader_id);
   void checkProgramError();
+  bool usingGeom;
 
 private:
 
-  bool usingGeom;
 
   std::string readFile(std::string name);
   

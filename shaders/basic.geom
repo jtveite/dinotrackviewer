@@ -24,7 +24,6 @@ vec4 transform(vec4 i){
 void main ()
 { 
   vec4 pos = gl_in[0].gl_Position;
-  //pos = vertexColor[0];
   float layers_gap = 30;
   float around_gap = 60;
   float tgap = radians(around_gap);

@@ -120,18 +120,18 @@ void PointManager::SetupDraw(bool allPaths){
     
     //GLuint vao;
     GLuint tempVar;
-    glGenVertexArrays(1, &tempVar);
-    glBindVertexArray(tempVar);
+//    glGenVertexArrays(1, &tempVar);
+//    glBindVertexArray(tempVar);
 
     glGenBuffers(1, &buffer);
     glGenBuffers(1, &pathBuffer);
     glGenBuffers(1, &tempPathBuffer);
-    pointShader = MyShader("shaders/basic.vert", "shaders/basic.geom", "shaders/basic.frag");
-    pointShader.checkErrors();
-    pointShader.loadTexture("colorMap", "colormap.jpg");
-    lineShader = MyShader("shaders/path.vert", "shaders/path.frag");
-    lineShader.checkErrors();
-    lineShader.loadTexture("pathMap", "pathmap.jpg");
+    pointShader = new MyShader("shaders/basic.vert", "shaders/basic.geom", "shaders/basic.frag");
+    pointShader->checkErrors();
+    pointShader->loadTexture("colorMap", "colormap.jpg");
+    lineShader = new MyShader("shaders/path.vert", "shaders/path.frag");
+    lineShader->checkErrors();
+    lineShader->loadTexture("pathMap", "pathmap.jpg");
 
 
     if (allPaths){
@@ -258,12 +258,12 @@ void PointManager::DrawPoints(int time, glm::mat4 mvp){
         printf("Error %d at the start of Points\n", err);
     }
     //Bind shader and set args
-    pointShader.bindShader();
+    pointShader->bindShader();
     if ((err = glGetError()) != 0){
         printf("Error %d after binding shader init\n", err);
     }
-    pointShader.setMatrix4("mvp", mvp);
-    pointShader.setFloat("rad", pointSize);
+    pointShader->setMatrix4("mvp", mvp);
+    pointShader->setFloat("rad", pointSize);
     if ((err = glGetError()) != 0){
         printf("Error %d after binding shaders\n", err);
     }
@@ -312,7 +312,7 @@ void PointManager::DrawPoints(int time, glm::mat4 mvp){
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     //Unbind shader
-    pointShader.unbindShader();
+    pointShader->unbindShader();
 }
 
  
@@ -322,8 +322,8 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
         printf("Error %d at the start of pathsw\n", err);
     }
     //Bind shader and set args
-    lineShader.bindShader();
-    lineShader.setMatrix4("mvp", mvp);
+    lineShader->bindShader();
+    lineShader->setMatrix4("mvp", mvp);
     if ((err = glGetError()) != 0){
         printf("Error %d at a\n", err);
     }
@@ -374,7 +374,7 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
         printf("Error %d at e\n", err);
     }
     //unbind shader
-    lineShader.unbindShader();
+    lineShader->unbindShader();
 }
 
 void PointManager::Draw(int time, glm::mat4 mvp){

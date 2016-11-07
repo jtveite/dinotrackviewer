@@ -10,13 +10,12 @@
 #include "stb_image.h"
 
 
-MyShader::MyShader(std::string vertName, std::string geoName, std::string fragName){
-    usingGeom = true;
+MyShader::MyShader(std::string vertName, std::string geoName, std::string fragName) : usingGeom(true){
     setShaders( vertName, geoName, fragName);
+
 }
 
-MyShader::MyShader(std::string vertName, std::string fragName){
-    usingGeom = false;
+MyShader::MyShader(std::string vertName, std::string fragName) : usingGeom(false){
     setShaders( vertName, "", fragName);
 }
 
@@ -29,6 +28,8 @@ std::string MyShader::readFile(std::string name){
 
 
 void MyShader::setShaders(std::string vertName, std::string geoName, std::string fragName){
+    printf("Loading shaders v: %s, g: %s, f:%s.\n", vertName.c_str(), geoName.c_str(), fragName.c_str());
+    printf("initial loading geom is %d.\n", usingGeom);
     std::string vertString = readFile(vertName);
     std::string fragString = readFile(fragName);
     vertShader = glCreateShader(GL_VERTEX_SHADER);
@@ -39,6 +40,7 @@ void MyShader::setShaders(std::string vertName, std::string geoName, std::string
     glShaderSource(fragShader, 1, &cs, NULL);
 
     if (usingGeom){
+      printf("loading geometry shader.\n");
       std::string geomString = readFile(geoName);
       geomShader = glCreateShader(GL_GEOMETRY_SHADER);
       cs = geomString.c_str();
@@ -60,14 +62,22 @@ void MyShader::setShaders(std::string vertName, std::string geoName, std::string
     glAttachShader(program, fragShader);
 
     glLinkProgram(program);
-
+    printf("linked loading geom is %d.\n", usingGeom);
+    checkErrors();
 }
 
 void MyShader::setMatrix4(std::string argument, glm::mat4 mat)
 {
   float* vals = glm::value_ptr(mat);
+  printf("setting matrix in shader.\n");
+  for (int i = 0; i < 4; i++){
+    for (int j = 0; j < 4; j++){
+       printf("%6.2f ", vals[4*j+i]);
+    }
+    printf("\n");
+  }
   GLint loc = glGetUniformLocation(program, argument.c_str());
-  glUniformMatrix4fv(loc, 1, GL_TRUE, vals);
+  glUniformMatrix4fv(loc, 1, GL_FALSE, vals);
 }
 
 void MyShader::setFloat(std::string argument, float val)
@@ -116,9 +126,13 @@ void MyShader::unbindShader(){
 
 
 void MyShader::checkErrors(){
+  printf("Using geometry shader is %d.\n", usingGeom);
+  printf("check vert\n");
   checkError(vertShader);
+  printf("check frag\n");
   checkError(fragShader);
   if (usingGeom){
+    printf("check geom\n");
     checkError(geomShader);
   }
   checkProgramError();
@@ -134,7 +148,7 @@ void MyShader::checkError(GLint sid){
     std::vector<GLchar> errorLog(maxLength);
     glGetShaderInfoLog(sid, maxLength, &maxLength, &errorLog[0]);
 
-    std::cout << "Error compiling shader: " << std::endl;
+    std::cout << "Error compiling shader " << sid << ": " << std::endl;
     if(maxLength > 0){
       printf("%s\n", &errorLog[0]);
     }

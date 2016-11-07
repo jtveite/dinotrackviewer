@@ -1,11 +1,13 @@
 #ifndef POINTMANAGER_H
 #define POINTMANAGER_H
 
-#include <GL/glew.h>
 #if defined(__APPLE__)
+#include <GL/glew.h>
 #include <OpenGL/gl.h>
 #else
+#include <GL/glew.h>
 #include <GL/gl.h>
+#include <GL/glu.h>
 #endif
 
 #include <vector>
@@ -65,11 +67,13 @@ private:
     GLuint buffer;
     GLuint pathBuffer;
     GLuint tempPathBuffer;
-    bool useSeparateBuffers = false;
+    bool useSeparateBuffers = true;
     GLuint* pointBuffers;
     GLuint vao;
-    MyShader pointShader;
-    MyShader lineShader;
+
+    MyShader* pointShader;
+    MyShader* lineShader;
+
     std::vector< std::vector<Vertex> > pointLocations;
 
     glm::vec3 minV;

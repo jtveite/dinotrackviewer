@@ -27,7 +27,10 @@
   #include <OpenGL/OpenGL.h>
 #else
   #include <GL/gl.h>
+  #include <GL/glu.h>
 #endif
+
+#include "GLUtil.h"
 
 
 enum struct Mode { STANDARD, ANIMATION, FILTER, SLICES};
@@ -57,42 +60,28 @@ public:
 #endif
 
     _vrMain = new MinVR::VRMain();
+    _vrMain->initialize(argc, argv);
     _vrMain->addEventHandler(this);
     _vrMain->addRenderHandler(this);
-    _vrMain->initialize(argc, argv);
+
+    const unsigned char* s = glGetString(GL_VERSION);
+    printf("GL Version %s.\n", s);
+
     //_mouseToTracker = new MouseToTracker(getCamera(), 2);
     frameTime = clock();
 
-//    pm.ReadFile("/users/jtveite/data/jtveite/slices-130.out");
-//    pm.ReadFile("/users/jtveite/dinotrackviewer/test-data");
     pm.ReadFile(dataFile, true);
-    
-   /* 
-    int maj,min;
-    glGetIntegerv(GL_MAJOR_VERSION, &maj);
-    glGetIntegerv(GL_MINOR_VERSION, &min);
-    const unsigned char* s = glGetString(GL_VERSION);
-    printf("GL Version %d.%d    %d\n", maj, min, GL_MAJOR_VERSION);
-    printf("alternate version %s.\n", s);
-    std::cout << std::endl;
-*/
-
- //   pm.SetupDraw(showAllPaths);
+   
     if (pathFile != "" && pathFile != "a"){
       pm.ReadPathlines(pathFile);
     }
     glm::mat4 scale = glm::scale(glm::mat4(), glm::vec3(20,20,20));
     glm::mat4 translate = glm::translate(glm::mat4(), glm::vec3(2, 0, -6));
-      glm::mat4 rotate = glm::yawPitchRoll(0, 0, 0);
-      printMat4(scale);
-      printMat4(translate);
-      printMat4(rotate);
+    glm::mat4 rotate = glm::yawPitchRoll(0, 0, 0);
     _owm = translate * rotate * scale;
     ac.setFrameCount(pm.getLength());
     ac.setSpeed(15);
 
-    //std::cout << GL_NO_ERROR << ' ' << GL_INVALID_ENUM << ' ' << GL_INVALID_VALUE << ' ' << GL_INVALID_OPERATION << ' ' << GL_INVALID_FRAMEBUFFER_OPERATION << std::endl;
-    //
     targetTracker = "Wand_Tracker";
     if (setup == "" || setup == "desktop"){
       targetTracker = "Mouse1_Tracker";
@@ -273,12 +262,14 @@ public:
       else{
         std::cout << eventName << std::endl;
       }
-
-
-
     
   }
  
+  virtual void onVRRenderContext(VRDataIndex *renderState, MinVR::VRDisplayNode *callingNode){
+    if (!renderState->exists("IsConsole", "/")){
+      glCheckError();
+    }
+  }
 
   void onVRRenderScene(VRDataIndex *renderState, MinVR::VRDisplayNode *callingNode)
   { 
@@ -288,19 +279,86 @@ public:
       printf("console");
       return;
     }
+   /* 
+    printf("Display node name : %s.\n", callingNode->getName().c_str());
+    printf("Display node type: %s.\n", callingNode->getAttributeName().c_str());
+    printf("Display node group: %s.\n", callingNode->getType().c_str());
+    auto names = renderState->getNames();
+    for(auto& name : names){
+      printf("Node name: %s\n", name.c_str());
+    }*/
+
+    glCheckError();
+    int gl_error;
+    while((gl_error = glGetError()) != GL_NO_ERROR)
+    {
+      dummy();
+
+      std::cout << "Flushing gl errors at start of render " << gl_error << std::endl;
+    }
+
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     if (needsSetup){
       needsSetup = false;
 
-      glewInit();
       const unsigned char* s = glGetString(GL_VERSION);
       printf("OpenGL Version: %s\n", s);
         glewExperimental = GL_TRUE;
+      glewInit();
       GLuint test;
       glGenBuffers(1, &test);
 
       pm.SetupDraw();
-
     }
+
+   glBegin(GL_QUADS);                // Begin drawing the color cube with 6 quads
+                                              // Top face (y = 1.0f)
+                                            // Define vertices in counter-clockwise (CCW) order with normal
+                                            // pointing out
+          glColor3f(0.0f, 0.5f, 0.0f);     // Green
+          glVertex3f( 1.0f, 1.0f, -1.0f);
+          glVertex3f(-1.0f, 1.0f, -1.0f);
+          glVertex3f(-1.0f, 1.0f,  1.0f);
+          glVertex3f( 1.0f, 1.0f,  1.0f);
+          
+          // Bottom face (y = -1.0f)
+          glColor3f(0.5f, 0.25f, 1.0f);     // Orange
+          glVertex3f( 1.0f, -1.0f,  1.0f);
+          glVertex3f(-1.0f, -1.0f,  1.0f);
+          glVertex3f(-1.0f, -1.0f, -1.0f);
+          glVertex3f( 1.0f, -1.0f, -1.0f);
+          
+          // Front face  (z = 1.0f)
+          glColor3f(0.5f, 0.0f, 1.0f);     // Red
+          glVertex3f( 1.0f,  1.0f, 1.0f);
+          glVertex3f(-1.0f,  1.0f, 1.0f);
+          glVertex3f(-1.0f, -1.0f, 1.0f);
+          glVertex3f( 1.0f, -1.0f, 1.0f);
+          
+      /*    // Back face (z = -1.0f)
+          glColor3f(0.5f, 0.5f, 0.0f);     // Yellow
+          glVertex3f( 1.0f, -1.0f, -1.0f);
+          glVertex3f(-1.0f, -1.0f, -1.0f);
+          glVertex3f(-1.0f,  1.0f, -1.0f);
+          glVertex3f( 1.0f,  1.0f, -1.0f);*/
+          
+          // Left face (x = -1.0f)
+          glColor3f(0.0f, 0.0f, 0.5f);     // Blue
+          glVertex3f(-1.0f,  1.0f,  1.0f);
+          glVertex3f(-1.0f,  1.0f, -1.0f);
+          glVertex3f(-1.0f, -1.0f, -1.0f);
+          glVertex3f(-1.0f, -1.0f,  1.0f);
+          
+          // Right face (x = 1.0f)
+          glColor3f(0.5f, 1.0f, 1.0f);     // Magenta
+          glVertex3f(1.0f,  1.0f, -1.0f);
+          glVertex3f(1.0f,  1.0f,  1.0f);
+          glVertex3f(1.0f, -1.0f,  1.0f);
+          glVertex3f(1.0f, -1.0f, -1.0f);
+          glEnd();  // End of drawing color-cube
+
+
     _lastFrame = ac.getFrame();
     float t = _lastFrame;
     //std::cout << "Rendering frame: " << _frameCounter << std::endl;
@@ -345,13 +403,7 @@ public:
       */
 
     //rd->setObjectToWorldMatrix(_virtualToRoomSpace);
-    int gl_error;
-    while((gl_error = glGetError()) != GL_NO_ERROR)
-    {
-
-      std::cout << "Flushing gl errors " << gl_error << std::endl;
-    }
-    
+   
     glm::mat4 P;
     glm::mat4 V;
     if (renderState->exists("ProjectionMatrix", "/")){
@@ -367,19 +419,11 @@ public:
     hack = glm::value_ptr(_owm);
     glm::mat4 M = glm::make_mat4(hack);
 
-      //M = glm::mat4();
-    for(int i = 0; i < 4 ; i++){
-      for(int j = 0; j < 4; j++){
-        printf("%3f  ", M[i][j]);
-      }
-      printf("\n");
-    }
-
     glm::mat4 mvp = P * V * M;
-
+    //printMat4(mvp);
 
     
-    std::cout << t << std::endl;
+    //std::cout << t << std::endl;
     pm.Draw(t, mvp);
 
  
@@ -388,15 +432,20 @@ public:
     //Sphere s (_lastTrackerLocation.translation, 0.02);
     //Draw::sphere(s, rd, Color3::red());
 
- //  printf("Look Vector: %f, %f, %f\n", lv.x, lv.y, lv.z);
 
     clock_t newTime = clock();
     frameTime = newTime;
   }
 
   void run(){
+
     while(true) {
-      _vrMain->mainloop();
+      int glError;
+      glCheckError();
+      _vrMain->synchronizeAndProcessEvents();
+      glCheckError();
+      _vrMain->renderOnAllDisplays();
+      glCheckError();
     }
   }
 
