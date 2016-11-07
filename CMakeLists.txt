@@ -9,6 +9,7 @@ set(dino_source_files
   shader.cpp
   animationcontroller.cpp
   filter.cpp
+  GLUtil.cpp
 )
 
 
@@ -20,6 +21,7 @@ set(filter_source_files
   shader.cpp
   animationcontroller.cpp
   filter.cpp
+  GLUtil.cpp
 )
 
 set(header_files
@@ -30,6 +32,7 @@ set(header_files
   filter.h
   pathfilter.h
   vertex.h
+  GLUtil.h
 )
 
 set(resource_files

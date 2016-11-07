@@ -10,6 +10,8 @@
 #include <GL/glu.h>
 #endif
 
+
+#include "GLUtil.h"
 #include <vector>
 #include <string>
 #include "vrpoint.h"

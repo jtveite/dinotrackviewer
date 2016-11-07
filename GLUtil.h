@@ -1,34 +1,35 @@
+#ifndef GLUTIL_H
+#define GLUTIL_H
+
+#include <iostream>
+
+
+#if defined(WIN32)
+#define NOMINMAX
+#include <windows.h>
+#include <GL/gl.h>
+#include <gl/GLU.h>
+
+#elif defined(__APPLE__)
+
+#include <GL/glew.h>
+#include <OpenGL/OpenGL.h>
+#include <OpenGL/glu.h>
+
+#else
+#define GL_GLEXT_PROTOTYPES
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
+#endif
+
 //Copied from http://learnopengl.com/#!In-Practice/Debugging
 
+void dummy();
 
-void dummy(){
+GLenum glCheckError_(const char *file, int line);
 
-}
-
-
-
-GLenum glCheckError_(const char *file, int line)
-{
-    GLenum errorCode;
-    while ((errorCode = glGetError()) != GL_NO_ERROR)
-    {
-        dummy();
-        std::string error;
-        switch (errorCode)
-        {
-            case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
-            case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
-            case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
-            case GL_STACK_OVERFLOW:                error = "STACK_OVERFLOW"; break;
-            case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
-            case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
-        }
-        std::cout << error << " | " << file << " (" << line << ")" << std::endl;
-    }
-    return errorCode;
-}
 #define glCheckError() glCheckError_(__FILE__, __LINE__) 
 
 
-
+#endif

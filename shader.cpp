@@ -98,7 +98,7 @@ void MyShader::bindShader(){
   if(hasTexture){
       GLint screenLoc = glGetUniformLocation(program, textureName.c_str());
       if ((err = glGetError()) != 0){
-          printf("Error %d at a\n", err);
+          printf("Error %d at ahi\n", err);
       }
       glUniform1i(screenLoc, 0);
       if ((err = glGetError()) != 0){

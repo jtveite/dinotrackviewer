@@ -15,6 +15,7 @@
 #include <GL/gl.h>
 #include <gl/GLU.h>
 #elif defined(__APPLE__)
+#include <GL/glew.h>
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/glu.h>
 #else
