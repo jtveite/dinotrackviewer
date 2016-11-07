@@ -117,11 +117,15 @@ void PointManager::SetupDraw(bool allPaths){
    
    
     retestVisible();
-    
+  
+
+//Why does it crash on CCV systems if there's a vao? I haven't a clue. But it does.
+#if defined(__APPLE__)
     GLuint vao;
     GLuint tempVar;
     glGenVertexArrays(1, &tempVar);
     glBindVertexArray(tempVar);
+#endif
 
     glGenBuffers(1, &buffer);
     glGenBuffers(1, &pathBuffer);
