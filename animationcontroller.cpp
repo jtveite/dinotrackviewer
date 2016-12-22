@@ -21,9 +21,10 @@ void AnimationController::setFrameCount(int numFrames){
 }
 
 int AnimationController::getFrame(){
-  currFrame++;
+  //currFrame++;
   double currentTime = 0;
   if (playing){
+    currFrame++;
     double time_passed = currentTime - startTime;
     if (time_passed > (1.0/speed)){
       currFrame++;
@@ -33,7 +34,6 @@ int AnimationController::getFrame(){
       currFrame = 0;
     }
   }
-  printf("Frame time : %f \n", currentTime - lastTime);
   lastTime = currentTime;
   return currFrame;
 }

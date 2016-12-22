@@ -33,7 +33,7 @@ private:
   float speed;
   int frameCount;
   int currFrame;
-  bool playing = true;
+  bool playing = false;
   double startTime;
   double lastTime;
 

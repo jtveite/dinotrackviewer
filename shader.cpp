@@ -69,13 +69,13 @@ void MyShader::setShaders(std::string vertName, std::string geoName, std::string
 void MyShader::setMatrix4(std::string argument, glm::mat4 mat)
 {
   float* vals = glm::value_ptr(mat);
-  printf("setting matrix in shader.\n");
+  /*printf("setting matrix in shader.\n");
   for (int i = 0; i < 4; i++){
     for (int j = 0; j < 4; j++){
        printf("%6.2f ", vals[4*j+i]);
     }
     printf("\n");
-  }
+  }*/
   GLint loc = glGetUniformLocation(program, argument.c_str());
   glUniformMatrix4fv(loc, 1, GL_FALSE, vals);
 }

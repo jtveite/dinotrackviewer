@@ -30,6 +30,7 @@
 #include "vertex.h"
 #include "filter.h"
 #include "pointmanager.h"
+#include "animationcontroller.h"
 //#include "GLUtil.h"
 
 #include "glm/glm.hpp"
@@ -58,6 +59,8 @@ void printMat4(glm::mat4 m){
     printf("\n");
   }
 }
+
+enum struct Mode {STANDARD, ANIMATION, FILTER, SLICES};
 
 class MyVRApp : public VREventHandler, public VRRenderHandler {
 public:
@@ -89,6 +92,86 @@ public:
 
 		std::cout << "Event: " << eventName << std::endl;
     }
+
+
+    if (eventName == "/Kbd1_Down" || eventName == "/Mouse_Up_Down"){
+      mode = Mode::STANDARD;
+      printf("moving to standard\n");
+    }
+    else if (eventName == "/Kbd2_Down" || eventName == "/Mouse_Down_Down"){
+      mode = Mode::ANIMATION;
+    }
+    else if (eventName == "/Kbd3_Down" || eventName == "/Mouse_Left_Down"){
+      mode = Mode::FILTER;
+      _pm->SetFilter(new MotionFilter(motionThreshold));
+    }
+    else if (eventName == "/Kbd4_Down" || eventName == "/Mouse_Right_Down"){
+      mode = Mode::SLICES;
+      _pm->SetFilter(_slicer);
+    }
+    else if (eventName == "/MouseBtnLeft_Down" || eventName == "/Wand_Bottom_Trigger_Down"){
+      _moving = true;
+    }
+    else if (eventName == "/MouseBtnLeft_Up" || eventName == "/Wand_Bottom_Trigger_Up"){
+      _moving = false;
+    }
+    else if (eventName == "/KbdQ_Down" || eventName == "/Wand_Top_Trigger_Down"){
+      _placePathline = true;
+    }
+    else if (eventName == "/KbdDown_Down" || eventName == "/Wand_Down_Down"){
+      if (mode == Mode::STANDARD){
+        _pm->pointSize /= 1.3;
+      }
+      if (mode == Mode::ANIMATION){
+        ac.decreaseSpeed();
+      }
+      if (mode == Mode::SLICES){
+        _slicer->addStart(.001);
+        _pm->SetFilter(_slicer);
+      }
+      if (mode == Mode::FILTER){
+        motionThreshold *= 1.414;
+        _pm->SetFilter(new MotionFilter(motionThreshold));
+      }
+    }
+    else if (eventName == "/KbdUp_Down" || eventName == "/Wand_Up_Down"){
+      if (mode == Mode::STANDARD){
+        _pm->pointSize *= 1.3;
+      }
+      if (mode == Mode::ANIMATION){
+        ac.increaseSpeed();
+      }
+      if (mode == Mode::SLICES){
+        _slicer->addStart(-.001);
+        _pm->SetFilter(_slicer);
+      }
+      if (mode == Mode::FILTER){
+        motionThreshold /= 1.414;
+        _pm->SetFilter(new MotionFilter(motionThreshold));
+      }
+    }
+    else if (eventName == "/KbdLeft_Down" || eventName == "/Wand_Left_Down"){
+      if (mode == Mode::SLICES){
+        _slicer->addGap(-0.0025);
+        _pm->SetFilter(_slicer);
+      }
+      else{
+        ac.stepBackward();
+      }
+    }
+    else if (eventName == "/KbdRight_Down" || eventName == "/Wand_Right_Down"){
+      if (mode == Mode::SLICES){
+        _slicer->addGap(.0025);
+        _pm->SetFilter(_slicer);
+      }
+      else{
+        ac.stepForward();
+      }
+    }
+    else if (eventName == "/KbdSpace_Down" || eventName == "/Wand_Select_Down"){
+      ac.togglePlay();
+    }
+
 
 		if (eventName == "/KbdEsc_Down") {
 			_quit = true;
@@ -257,10 +340,8 @@ public:
                 //V = glm::transpose(V);
                 MVP = P * V * M ;
                 glm::mat4 t = V ;
-                frame++;
-                _pm->Draw(frame % 40, MVP );
-                printf("Printing MVP: \n");
-                printMat4(MVP);
+                float time = ac.getFrame();
+                _pm->Draw(time, MVP );
 		}
 	}
 
@@ -277,6 +358,12 @@ protected:
   PointManager* _pm;
   bool first;
   int frame;
+  Mode mode;
+  float motionThreshold = 0.01;
+  AnimationController ac;
+  bool _moving;
+  bool _placePathline;
+  SliceFilter* _slicer;
 };
 
 
@@ -286,6 +373,6 @@ int main(int argc, char **argv) {
     MyVRApp app(argc, argv);
   	app.run();
 
-	exit(0);
+    return 0;
 }
 
