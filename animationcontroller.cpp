@@ -33,7 +33,7 @@ int AnimationController::getFrame(){
       currFrame = 0;
     }
   }
-  printf("Frame time : %f \n", currentTime - lastTime);
+  //printf("Frame time : %f \n", currentTime - lastTime);
   lastTime = currentTime;
   return currFrame;
 }

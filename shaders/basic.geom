@@ -10,7 +10,9 @@ out vec4 position;
 
 uniform mat4 mvp;
 
-uniform float rad;
+uniform float radius;
+
+uniform vec4 cuttingPlane; //represented as ax + by + cz + d = 0, values >0 culled
 //float rad = 0.002;
 
 vec4 get_vertex(float theta, float phi){
@@ -31,6 +33,15 @@ void main ()
   float pgap = radians(layers_gap);
   float pi = 3.1415926;
   gsColor = vertexColor[0];
+  float rad = radius;
+  float planeLocation = (pos.x * cuttingPlane.x + pos.y * cuttingPlane.y + pos.z * cuttingPlane.z + cuttingPlane.w);
+  if (abs(planeLocation) > 0.0001){
+  //if (planeLocation > 0){
+      rad = rad * .3;
+  }
+
+
+
   for (float up = 0; up <= pi; up += pgap){
     float phi = up;
     for (float around = 0; around <= 2 * pi; around += tgap){

@@ -17,7 +17,7 @@ enum struct Mode { STANDARD, ANIMATION, FILTER, SLICES};
 class DinoApp : public VRApp
 {
 public:
-  DinoApp(std::string setup, std::string dataFile, std::string pathFile, bool showAllPaths = false) : VRApp(),
+  DinoApp(std::string setup, std::string dataFile, std::string pathFile, std::string surfaceFile, bool showAllPaths = false) : VRApp(),
   ac()
   {
   
@@ -26,19 +26,28 @@ public:
     ProfilerStart(profFile.c_str());
 #endif
 
-
-    Log *dinolog = new Log("dino-log.txt");
+    std::string logName = "logs/dino-log-" + setup;
+    Log *dinolog = new Log(logName);
+    log = dinolog;
     init(setup, dinolog);
     _mouseToTracker = new MouseToTracker(getCamera(), 2);
     frameTime = clock();
 
 //    pm.ReadFile("/users/jtveite/data/jtveite/slices-130.out");
-//    pm.ReadFile("/users/jtveite/dinotrackviewer/test-data");
+//    pm.ReadFile("/users/jtveite/dinotrackviewer/test-data")
+    dinolog->printf("startish\n");
     pm.ReadFile(dataFile, true);
+    dinolog->printf("File read\n");
     pm.SetupDraw(showAllPaths);
     if (pathFile != "" && pathFile != "a"){
       pm.ReadPathlines(pathFile);
     }
+    dinolog->printf("pathlines read\n");
+    if (surfaceFile != "" && surfaceFile != "a"){
+      pm.ReadSurface(surfaceFile);
+    }
+//    pm.ReadSurface("tris/active");
+    dinolog->printf("surface read\n");
     Matrix3 scale = Matrix3::fromDiagonal(Vector3(20, 20, 20));
     CoordinateFrame scaleC (scale);
     CoordinateFrame rotate = CoordinateFrame::fromXYZYPRDegrees(
@@ -88,15 +97,17 @@ public:
         mode = Mode::STANDARD;
       }
       else if (eventName == "B10_down" || eventName == "kbd_2_down"){
-        mode = Mode::ANIMATION;
+        //mode = Mode::ANIMATION;
+        pm.showSurface = !pm.showSurface;
       }
       else if (eventName == "B11_down" || eventName == "kbd_3_down"){
         mode = Mode::FILTER;
         pm.SetFilter(new MotionFilter(motionThreshold));
       }
       else if (eventName == "B12_down" || eventName == "kbd_4_down"){
-        mode = Mode::SLICES;
-        pm.SetFilter(_slicer);
+        //mode = Mode::SLICES;
+        //pm.SetFilter(_slicer);
+        _slicing = !_slicing;
       }
       else if(eventName == "Mouse_Left_Btn_down"){
         _moving = true;
@@ -158,7 +169,7 @@ public:
       }
       
       else if (eventName == "B05_down"){
-        if (mode == Mode::STANDARD || mode == Mode::ANIMATION){
+        if (mode == Mode::STANDARD || mode == Mode::ANIMATION || mode == Mode::FILTER){
           ac.stepBackward();
         }
         if (mode == Mode::SLICES){
@@ -167,7 +178,7 @@ public:
         }
       }
       else if (eventName == "B06_down"){
-        if (mode == Mode::STANDARD || mode == Mode::ANIMATION){
+        if (mode == Mode::STANDARD || mode == Mode::ANIMATION || mode == Mode::FILTER){
           ac.stepForward();
         }
         if (mode == Mode::SLICES){
@@ -244,6 +255,7 @@ public:
 
   void doGraphics(RenderDevice *rd)
   {
+    log->print("start of graphics");
     _lastFrame = ac.getFrame();
     float t = _lastFrame;
     //std::cout << "Rendering frame: " << _frameCounter << std::endl;
@@ -252,6 +264,7 @@ public:
     //std::string targetTracker = "Mouse1_Tracker";
     //std::string targetTracker = "Wand_Tracker";
     Array<std::string> trackerNames = _trackerFrames.getKeys();
+    Vector4 cuttingPlane;
     for (int i = 0; i < trackerNames.size(); i++){
       CoordinateFrame trackerFrame = _trackerFrames[trackerNames[i]];
       if (trackerNames[i] == targetTracker){
@@ -261,6 +274,21 @@ public:
         }
         _lastTrackerLocation = trackerFrame;
         
+
+        Vector3 location = trackerFrame.translation;
+        Vector3 up = trackerFrame.upVector();
+        //Draw::arrow(  location, up, rd, Color3::orange(), .1);
+
+        Matrix4 owm = _owm.toMatrix4();
+        Matrix4 transform = owm.inverse();
+        location = (transform * Vector4(location, 1.0)).xyz();
+        up = (transform * Vector4(up, 0.0)).xyz();
+
+        float offset = -(up.x * location.x + up.y * location.y + up.z * location.z);
+        if (_slicing){
+          cuttingPlane = Vector4(up.x, up.y, up.z, offset);
+        }
+
       }
 
     }
@@ -300,7 +328,9 @@ public:
     Matrix4 mvp = rd->invertYMatrix() * rd->modelViewProjectionMatrix();
     
     //std::cout << t << std::endl;
-    pm.Draw(rd, t, mvp);
+    log->print("Before draw\n");
+    pm.Draw(rd, t, mvp, cuttingPlane);
+    log->print("after draw\n");
     rd->popState();
 
     Vector3 hp = getCamera()->getHeadPos();
@@ -338,6 +368,8 @@ protected:
   float motionThreshold = 0.01;
   SliceFilter* _slicer;
   Mode mode = Mode::STANDARD;
+  bool _slicing;
+  Log* log;
 };
 
 int main(int argc, char **argv )
@@ -345,6 +377,7 @@ int main(int argc, char **argv )
   std::string setup;
   std::string dataFile;
   std::string pathsFile;
+  std::string surfaceFile;
   bool showAllPaths = false;
   if (argc >= 2)
   {
@@ -355,7 +388,7 @@ int main(int argc, char **argv )
     dataFile = std::string(argv[2]);
   }
   else{
-    dataFile = "/users/jtveite/data/jtveite/slices-68.out";
+    dataFile = "/users/jtveite/data/jtveite/dino/slices-68-trimmed.out";
   }
   if (argc >= 4)
   {
@@ -366,10 +399,14 @@ int main(int argc, char **argv )
   }
   if (argc >= 5)
   {
+    surfaceFile = std::string(argv[4]); 
+  }
+  if (argc >= 6)
+  {
     showAllPaths = true;
   }
     
-  DinoApp *app = new DinoApp(setup, dataFile, pathsFile,  showAllPaths);
+  DinoApp *app = new DinoApp(setup, dataFile, pathsFile, surfaceFile, showAllPaths);
   app->run();
   return 0;
 

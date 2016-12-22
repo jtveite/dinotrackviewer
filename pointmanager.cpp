@@ -114,6 +114,7 @@ void PointManager::SetupDraw(bool allPaths){
     glGenBuffers(1, &buffer);
     glGenBuffers(1, &pathBuffer);
     glGenBuffers(1, &tempPathBuffer);
+    glGenBuffers(1, &surfaceIndexBuffer);
     glGenVertexArrays(1, &vao);
     pointShader = MyShader("shaders/basic.vert", "shaders/basic.geom", "shaders/basic.frag");
     pointShader.checkErrors();
@@ -121,6 +122,11 @@ void PointManager::SetupDraw(bool allPaths){
     lineShader = MyShader("shaders/path.vert", "shaders/path.frag");
     lineShader.checkErrors();
     lineShader.loadTexture("pathMap", "pathmap.jpg");
+    surfaceShader = MyShader("shaders/surface.vert","shaders/surface.geom", "shaders/surface.frag");
+    surfaceShader.checkErrors();
+    surfaceShader.loadTexture("colorMap", "surfacemap.jpg");
+
+
 
 
     if (allPaths){
@@ -152,6 +158,42 @@ void PointManager::ReadPathlines(std::string fileName){
   }
 
 } 
+
+void PointManager::ReadSurface(std::string fileName){
+  clock_t startTime = clock();
+  std::fstream file;
+  file.open(fileName, std::ios::in);
+  int a,b,c, ai, bi, ci;//a,b,c are ids, ai,bi,ci are indices
+  while (file >> a >> b >> c){
+    ai = -1;
+    bi = -1;
+    ci = -1;
+    for(int i = 0; i < points.size(); i++){
+      if (points[i].m_id == a){
+        ai = i;
+      }
+      if (points[i].m_id == b){
+        bi = i;
+      }
+      if (points[i].m_id == c){
+        ci = i;
+      }
+    }
+    if ( (ai != -1) && (bi != -1) && (ci != -1)){
+        surfaceIndices.push_back(ai);
+        surfaceIndices.push_back(bi);
+        surfaceIndices.push_back(ci);
+    }
+  }
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, surfaceIndexBuffer);
+  int bufferSize = surfaceIndices.size() * sizeof(int);
+  int* bufferData = surfaceIndices.data();
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize, bufferData, GL_STATIC_DRAW);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  printf("Found %d points.\n", surfaceIndices.size());
+  printf("Time of reading surface: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
+}
 
 int PointManager::getLength(){
   return timeSteps;
@@ -203,7 +245,7 @@ void PointManager::TempPathline(Vector3 pos, int time){
 void PointManager::AddPathline(Vector3 pos, int time){
   int bestID = FindPathline(pos, time); 
   AddPathline(points[bestID]);
-  //printf("Best pathline was for point %d near to %f, %f, %f", bestID, pos.x, pos.y, pos.z);
+  printf("Best pathline was for point %d near to %f, %f, %f\n", points[bestID].m_id, pos.x, pos.y, pos.z);
   //std::cout << std::endl;
 }
 
@@ -240,11 +282,12 @@ void PointManager::DrawBoxes(RenderDevice* rd){
   }
 }
 
-void PointManager::DrawPoints(int time, Matrix4 mvp){
+void PointManager::DrawPoints(int time, Matrix4 mvp, Vector4 cuttingPlane){
     //Bind shader and set args
     pointShader.bindShader();
     pointShader.setMatrix4("mvp", mvp);
-    pointShader.setFloat("rad", pointSize);
+    pointShader.setFloat("radius", pointSize);
+    pointShader.setVector4("cuttingPlane", cuttingPlane);
 
     //Bind and resend buffer data
     int numElements;
@@ -279,6 +322,30 @@ void PointManager::DrawPoints(int time, Matrix4 mvp){
 
     //Unbind shader
     pointShader.unbindShader();
+}
+
+void PointManager::DrawSurface(int time, Matrix4 mvp){
+    surfaceShader.bindShader();
+    surfaceShader.setMatrix4("mvp", mvp);
+
+    int numElements = surfaceIndices.size();
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);//Should have been set in DrawPoints
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, surfaceIndexBuffer);//Should be set earlier and never change since we're indexing to the same point
+    //TODO: Fix this so that it works nicely with filters
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(Vector3));
+
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glDisable(GL_CULL_FACE);
+
+    glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, (void*) 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    surfaceShader.unbindShader();
 }
 
  
@@ -327,15 +394,18 @@ void PointManager::DrawPaths(int time, Matrix4 mvp){
     lineShader.unbindShader();
 }
 
-void PointManager::Draw(RenderDevice *rd, int time, Matrix4 mvp){
+void PointManager::Draw(RenderDevice *rd, int time, Matrix4 mvp, Vector4 cuttingPlane){
     numFramesSeen++;
     clock_t startTime = clock();
     rd->pushState();
     DrawBoxes(rd);
     //printf("Time after setting points: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
     rd->beginOpenGL();
-    DrawPoints(time, mvp);
+    DrawPoints(time, mvp, cuttingPlane);
     DrawPaths(time, mvp);
+    if (showSurface){
+      DrawSurface(time, mvp);
+    }
     rd->endOpenGL();
     rd->popState();
     //printf("Time end of frame: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);

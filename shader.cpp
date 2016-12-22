@@ -71,6 +71,12 @@ void MyShader::setFloat(std::string argument, float val)
   glUniform1f(loc, val);
 }
 
+void MyShader::setVector4(std::string argument, G3D::Vector4 val)
+{
+  GLint loc = glGetUniformLocation(program, argument.c_str());
+  glUniform4f(loc, val.x, val.y, val.z, val.w);
+}
+
 void MyShader::bindShader(){
   glUseProgram(program);
   if(hasTexture){
