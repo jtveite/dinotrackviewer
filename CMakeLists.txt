@@ -9,6 +9,7 @@ set(dino_source_files
   shader.cpp
   animationcontroller.cpp
   filter.cpp
+  movm.cpp
   GLUtil.cpp
 )
 
