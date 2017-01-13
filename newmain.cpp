@@ -74,7 +74,7 @@ public:
     printf("GL Version %s.\n", s);
         _horizAngle = 0.0;
         _vertAngle = 0.0;
-		_radius =  10.0;
+		_radius =  4.0;
         _incAngle = -0.1f;
     _pm = new PointManager();
     _pm->ReadFile("data/slices-68-trimmed.out");
@@ -212,6 +212,7 @@ public:
   
 	// Callback for rendering, inherited from VRRenderHandler
 	virtual void onVRRenderScene(VRDataIndex *renderState, VRDisplayNode *callingNode) {
+      glCheckError();
 		if (renderState->exists("IsConsole", "/")) {
 			VRConsoleNode *console = dynamic_cast<VRConsoleNode*>(callingNode);
 			console->println("Console output...");
@@ -225,7 +226,9 @@ public:
       first = false;
     }
     GLuint test;
+      glCheckError();
     glGenBuffers(1, &test);
+      glCheckError();
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LEQUAL);
 			glClearDepth(1.0f);
@@ -234,6 +237,7 @@ public:
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 			//glClear(GL_DEPTH_BUFFER_BIT);
+      glCheckError();
 
             glm::mat4 M, V, P;
             glm::mat4 MVP;
@@ -292,11 +296,18 @@ public:
                 // ProjectionMatrix and ViewMatrix, then we must be in a non-headtracked
                 // simple desktop mode.  We can just set the projection and modelview
                 // matrices the same way as in adaptee.cpp.
+                /*
+      glCheckError();
                 glMatrixMode(GL_PROJECTION);
+      glCheckError();
                 glLoadIdentity();
+      glCheckError();
                 gluPerspective(1.6*45.f, 1.f, 0.1f, 100.0f);
+      glCheckError();
                 glMatrixMode(GL_MODELVIEW);
+      glCheckError();
                 glLoadIdentity();
+      glCheckError();
               
                 double cameraPos[3];
                 cameraPos[0] = _radius * cos(_horizAngle) * cos(_vertAngle);
@@ -309,11 +320,13 @@ public:
                 cameraAim[2] = sin(_horizAngle) * sin(_vertAngle);
               
                 double targetPos[3] = {0.0f, 0.0f, 0.0f};
+      glCheckError();
                gluLookAt (cameraPos[0], cameraPos[1], cameraPos[2],
                            targetPos[0], targetPos[1], targetPos[2],
                            cameraAim[0], cameraAim[1], cameraAim[2]);
  
-
+      glCheckError();
+*/
                 P = glm::perspective(1.6f*45.f, 1.f, 0.1f, 100.0f);
                 glm::vec3 pos = glm::vec3(_radius * cos(_horizAngle) * cos(_vertAngle),
                                           -_radius * sin(_vertAngle),
@@ -341,12 +354,14 @@ public:
                 MVP = P * V * M ;
                 glm::mat4 t = V ;
                 float time = ac.getFrame();
+                glCheckError();
                 _pm->Draw(time, MVP );
 		}
 	}
 
 	void run() {
 		while (!_quit) {
+      glCheckError();
 			_vrMain->mainloop();
 		}
 	}
