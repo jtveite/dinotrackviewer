@@ -99,19 +99,22 @@ glm::vec2 VRPoint::getColor(int position){
   return glm::vec2(pos, 0.5);
 }
 
-std::vector<Vertex> VRPoint::getPathlineVerts()
+std::vector<Vertex> VRPoint::getPathlineVerts(bool useHardX, float hardXPos)
 {
-  double radius = 0.0001;
+  double radius = 0.00008;
   std::vector<Vertex> v;
   std::vector<Vertex> points;
   std::vector<int> indices;
-  int steps_around = 20;
+  int steps_around = 5;
   for(int i = 0; i < positions.size() -1; i++){
     glm::vec3 forward = positions[i+1] - positions[i];
     glm::vec3 wup = glm::vec3(0, 0, 1);
     glm::vec3 right = glm::normalize(glm::cross(wup, forward));
     glm::vec3 up = glm::normalize(glm::cross(forward,right));
     glm::vec2 col = getColor(i);
+    if (useHardX){
+      col.x = hardXPos;
+    }
     for(int j = 0; j < steps_around; j++){
       points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, (j * 6.28 / steps_around)), col));
     }
@@ -137,24 +140,32 @@ std::vector<Vertex> VRPoint::getPathlineVerts()
   glm::vec3 right = glm::normalize(glm::cross(wup, forward));
   glm::vec3 up = glm::normalize(glm::cross(forward,right));
   glm::vec2 col = getColor(i);
+  if (useHardX){
+    col.x = hardXPos;
+  }
   for(int j = 0; j < steps_around; j++){
     points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, j * 1.0 / steps_around), col));
   }
     
     std::vector<int> triIndices;
     for (int i =0 ; i < indices.size(); i += 4){
-        triIndices.push_back(i);
-        triIndices.push_back(i+1);
-        triIndices.push_back(i+2);
+
+        triIndices.push_back(indices[i]);
+        triIndices.push_back(indices[i+1]);
+        triIndices.push_back(indices[i+2]);
         
-        triIndices.push_back(i);
-        triIndices.push_back(i+2);
-        triIndices.push_back(i+3);
+        triIndices.push_back(indices[i]);
+        triIndices.push_back(indices[i+2]);
+        triIndices.push_back(indices[i+3]);
     }
 
   for(int i = 0; i < triIndices.size(); i++){
     v.push_back(points[triIndices[i]]);
+    Vertex a = points[triIndices[i]];
+    //printf("Point at index %d,%d: %f, %f, %f: %f, %f\n", i, triIndices[i], a.position.x, a.position.y, a.position.z, a.color.x, a.color.y);
   }
+
+  //printf("Indices size: %d, TriIndices size : %d, Final size: %d\n", indices.size(), triIndices.size(), v.size());
   return v;
 }
 

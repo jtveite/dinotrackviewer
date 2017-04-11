@@ -1,6 +1,6 @@
 
 <MinVR>
-  <PluginPath>~/minvr/MinVR2/build/plugins</PluginPath>
+  <PluginPath>/users/jtveite/minvr/MinVR2/build/plugins</PluginPath>
 	<GLFWPlugin pluginType="MinVR_GLFW"/>
 	<OpenGLPlugin pluginType="MinVR_OpenGL"/>
 

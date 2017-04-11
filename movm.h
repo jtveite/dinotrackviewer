@@ -37,6 +37,6 @@ public:
 
 std::unordered_map<int, MoVMF> readMoVMFs(std::string fileName);
   
-
+MoVMF combineMoVMFs(MoVMF& a, double aw, MoVMF& b, double bw);
 
 double bessel(double x);

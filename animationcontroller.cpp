@@ -21,13 +21,13 @@ void AnimationController::setFrameCount(int numFrames){
 }
 
 int AnimationController::getFrame(){
-  //currFrame++;
-  double currentTime = 0;
+  double currentTime = (double) clock();
   if (playing){
     currFrame++;
-    double time_passed = currentTime - startTime;
+    double time_passed =0;//TEMP: JUST ALWAYS GO TO NEXT FRAME (currentTime - startTime)/CLOCKS_PER_SEC;
     if (time_passed > (1.0/speed)){
       currFrame++;
+      printf("st %f, ct %f, ft %f\n", startTime, currentTime, 1.0/speed);
       startTime = currentTime;
     }
     if (currFrame >= frameCount){

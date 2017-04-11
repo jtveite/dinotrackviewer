@@ -10,6 +10,8 @@ set(dino_source_files
   animationcontroller.cpp
   filter.cpp
   movm.cpp
+  footmeshviewer.cpp
+  webupdatereader.cpp
   GLUtil.cpp
 )
 
@@ -22,6 +24,7 @@ set(filter_source_files
   shader.cpp
   animationcontroller.cpp
   filter.cpp
+  movm.cpp
   GLUtil.cpp
 )
 
@@ -33,6 +36,8 @@ set(header_files
   filter.h
   pathfilter.h
   vertex.h
+  footmeshviewer.h
+  webupdatereader.h
   GLUtil.h
 )
 

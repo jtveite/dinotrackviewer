@@ -27,7 +27,10 @@ double MoVMF::compare(MoVMF& other){
     for (int j = 0; j < other.distributions.size(); j++){
       double weight = distributions[i].first * other.distributions[j].first;
       double sim = distributions[i].second.compare(other.distributions[j].second);
-      printf("Pair %d, %d has weight %f and similarity %f\n", i, j, weight, sim);
+      if (sim > 1.0){
+        sim = 1.0;
+      }
+      //printf("Pair %d, %d has weight %f and similarity %f\n", i, j, weight, sim);
       similarity += weight * sim;
     }
   }
@@ -57,6 +60,17 @@ std::unordered_map<int, MoVMF> readMoVMFs(std::string fileName){
   return map;
 }
 
+MoVMF combineMoVMFs(MoVMF& a, double  aw, MoVMF& b, double bw){
+  MoVMF r;
+  for (int i = 0; i < a.distributions.size(); i++){
+    r.addComponent(a.distributions[i].first * (aw / (aw + bw)), a.distributions[i].second);
+  }
+  for (int i = 0; i < b.distributions.size(); i++){
+    r.addComponent(b.distributions[i].first * (bw / (aw + bw)), b.distributions[i].second);
+  }
+  return r;
+}
+
 
 //Returns the factorial squared
 double fac2(int k){
@@ -71,7 +85,7 @@ double fac2(int k){
 double bessel(double x){
   double sum = 0;
   double num, denom;
-  for(int k = 0; k < 25; k++){//5 is about infinity
+  for(int k = 0; k < 10; k++){//5 is about infinity
     num = pow(4, -k) * pow(x, 2 * k);
     denom = fac2(k);
     sum += num/denom;

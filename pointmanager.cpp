@@ -6,6 +6,8 @@
 #include <string>
 #include <sstream>
 #include <cstdlib>
+#include <algorithm>
+#include <functional>
 
 #ifdef PROFILING
 #include "gperftools/profiler.h"
@@ -37,12 +39,12 @@ void PointManager::ReadFile(std::string fileName, bool debug)
     while(std::getline(file, line))
     {
         linecount++;
-        if(debug){
+        //if(debug){
           if (linecount % 10000 == 0){
             printf("Currently reading line %d.\r\n", linecount); 
             //ProfilerFlush();
           }
-        }
+       // }
         std::istringstream iss(line);
         int id;
         float x,y,z;
@@ -130,10 +132,12 @@ void PointManager::SetupDraw(bool allPaths){
     glGenBuffers(1, &buffer);
     glGenBuffers(1, &pathBuffer);
     glGenBuffers(1, &tempPathBuffer);
+    glGenBuffers(1, &megaClusterBuffer);
+    glGenBuffers(1, &clusterBuffer);
     pointShader = new MyShader("shaders/basic.vert", "shaders/basic.geom", "shaders/basic.frag");
     pointShader->checkErrors();
     pointShader->loadTexture("colorMap", "colormap.jpg");
-    lineShader = new MyShader("shaders/path.vert", "shaders/path.frag");
+    lineShader = new MyShader("shaders/litpath.vert", "shaders/litpath.geom",  "shaders/litpath.frag");
     lineShader->checkErrors();
     lineShader->loadTexture("pathMap", "pathmap.jpg");
 
@@ -195,6 +199,7 @@ void PointManager::computeLocations(){
   }
 }
 
+//Returns the index of the closest point
 int PointManager::FindPathline(glm::vec3 pos, int time, float minDist){
   int bestID = 0;
   float d;
@@ -218,7 +223,7 @@ void PointManager::TempPathline(glm::vec3 pos, int time){
 void PointManager::AddPathline(glm::vec3 pos, int time){
   int bestID = FindPathline(pos, time); 
   AddPathline(points[bestID]);
-  //printf("Best pathline was for point %d near to %f, %f, %f", bestID, pos.x, pos.y, pos.z);
+  printf("Best pathline was for point %d near to %f, %f, %f\n", bestID, pos.x, pos.y, pos.z);
   //std::cout << std::endl;
 }
 
@@ -230,6 +235,142 @@ void PointManager::AddPathline(VRPoint& point){
   pathVertices.insert(pathVertices.end(), newVerts.begin(), newVerts.end());
   updatePaths = true;
 }
+
+void PointManager::ClearPathlines(){
+  pathOffsets.clear();
+  pathCounts.clear();
+  pathVertices.clear();
+  updatePaths = true;
+}
+
+void PointManager::ReadClusters(std::string fileName){
+  clusters.clear();
+  std::fstream file;
+  file.open(fileName, std::ios::in);
+  std::string line;
+  while(std::getline(file, line)){
+    std::istringstream iss(line);
+    std::vector<int> pointIDs;
+    int id;
+    //Read the points into a vector of ids
+    while (iss >> id){
+      pointIDs.push_back(id);
+    }
+    //Process the vector of IDs to get back indices
+    //Could do this separately, but 
+    std::vector<int> indices;
+    for (auto id : pointIDs){
+      int idx = FindPointIndex(id);
+      if (idx == 0){
+        std::cout << "double :(" << std::endl;
+      }
+      if (idx != -1){
+        indices.push_back(idx);
+      }
+    }
+    clusters.push_back(indices);
+    std::cout << "Read a cluster of size " << indices.size() << std::endl;
+  }
+  std::cout << "Read " << clusters.size() << " clusters total." << std::endl;
+  for (int i = 0; i < clusters.size(); i++){
+    for (int j = 0; j < clusters[i].size(); j++){
+      if (clusters[i][j] == 0){
+        std::cout << ":(" << std::endl;
+      }
+    }
+  }
+}
+
+void PointManager::ShowCluster(glm::vec3 pos, int time){
+  std::cout << "Searching for a cluster." << std::endl;
+  int closestPoint = FindPathline(pos, time);
+  std::cout << "Best point found was " << closestPoint << std::endl;
+  int foundCluster = -1;
+  for (int i = 0; i < clusters.size(); i++){
+    for (int j = 0; j < clusters[i].size(); j++){
+      if (clusters[i][j] == closestPoint){
+        foundCluster = i;
+      }
+    }
+  }
+  if (foundCluster != -1){
+    currentCluster = foundCluster;
+    clustersChanged = true;
+    std::cout << "Found a point in cluster! " << currentCluster << std::endl;
+  }
+  
+}
+
+void PointManager::ReadMoVMFs(std::string fileName){
+  movmfs = readMoVMFs(fileName);
+}
+
+void PointManager::ResetPrediction(){
+  seeds = MoVMF();
+  seedCount = 0;
+  seedsChanged = true;
+  seedSearches = 0;
+}
+
+void PointManager::AddSeedPoint(glm::vec3 pos, int time){
+  int bestIdx = FindPathline(pos, time);
+  int bestID = points[bestIdx].m_id;
+  auto it = movmfs.find(bestID);
+  if (it == movmfs.end()){
+    std::cout << "Failed to add point" << std::endl;
+    return;//fail silently because eh
+  }
+  seeds = combineMoVMFs(seeds, seedCount, it->second, 1);
+  std::cout << "Added point, now have length" << seeds.distributions.size() << std::endl;
+  AddPathline(points[bestIdx]);
+  seedsChanged = true;
+}
+
+
+void PointManager::SearchForSeeds(int target_count){
+  std::cout << "Beginning scoring!" << std::endl;
+  std::unordered_map<int, double> results;
+  std::vector<int> wanted;
+  //std::vector<std::pair<double, int>> scores;
+  if (seedsChanged){
+    scores.clear();
+    for(int i = 0; i < points.size(); i++){
+      int id = points[i].m_id;
+      double score = seeds.compare(movmfs[id]);
+      printf("Point ID %d with score %f\n", i, score);
+      results.insert(std::make_pair(i, score));
+      scores.push_back(std::make_pair(1-score, i));
+      if (score > 0.5){
+        //wanted.push_back(i);
+        //AddPathline(points[i]);
+      }
+    }
+  }
+  for (auto it : wanted){
+    printf("Looking for point id %d. Found at index %d.\n", it, FindPointIndex(it));
+    //AddPathline(points[FindPointIndex(it)]);
+  }
+  int numParticles = target_count * (seedSearches + 1);
+  std::nth_element(scores.begin(), scores.begin() + numParticles, scores.end());
+  for(int i = 0; i < numParticles ; i++){
+    printf("Element %d with score %f.\n", scores[i].second, 1-scores[i].first);
+    AddPathline(points[scores[i].second]);
+  }
+  
+  std::cout << std::endl;
+  seedsChanged = false;
+  seedSearches++;
+}
+
+int PointManager::FindPointIndex(int pointID){
+  for(int i = 0; i < points.size(); i++){
+    if(points[i].m_id == pointID){
+      return i;
+    }
+  }
+  return -1;
+}
+
 
 void PointManager::SetFilter(Filter* f){
   filter = f;
@@ -311,6 +452,8 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
     //Bind shader and set args
     lineShader->bindShader();
     lineShader->setMatrix4("mvp", mvp);
+    lineShader->setFloat("minCutoff", pathlineMin);
+    lineShader->setFloat("maxCutoff", pathlineMax);
     glCheckError();
 
     //Bind buffer, resend data if needed
@@ -335,6 +478,7 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
     glCheckError();
 
 
+
     //Draw temporary paths
     if (tempPath.size() > 0){
       glBindBuffer(GL_ARRAY_BUFFER, tempPathBuffer);
@@ -355,6 +499,130 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
     lineShader->unbindShader();
 }
 
+void PointManager::DrawClusters(int time, glm::mat4 mvp){
+    if (!clustering || currentCluster == -1){
+      return;
+    }
+
+    glCheckError();
+    //Bind shader and set args
+    lineShader->bindShader();
+    lineShader->setMatrix4("mvp", mvp);
+    lineShader->setFloat("minCutoff", pathlineMin);
+    lineShader->setFloat("maxCutoff", pathlineMax);
+    glCheckError();
+
+    //Bind buffer, resend data if needed
+    glBindBuffer(GL_ARRAY_BUFFER, clusterBuffer);
+    int bufferSize = clusterVertCount * sizeof(Vertex);
+    //updatePaths ensures that we only write new paths to the gpu when needed
+    if (clustersChanged){
+      clustersChanged = false;
+      std::vector<Vertex> clusterVerts;
+      for(int i = 0; i < clusters[currentCluster].size(); i++){
+        std::vector<Vertex> newVerts = points[clusters[currentCluster][i]].getPathlineVerts();
+        clusterVerts.insert(clusterVerts.end(), newVerts.begin(), newVerts.end());
+      }
+      Vertex* bufferData = clusterVerts.data();
+      clusterVertCount = clusterVerts.size();
+      bufferSize = clusterVertCount * sizeof(Vertex);
+      glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_DYNAMIC_DRAW);
+    }
+    glCheckError();
+
+    //set vertex attributes
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
+    glCheckError();
+    //Draw points
+    glDrawArrays(GL_TRIANGLES,  0, bufferSize);
+    glCheckError();
+}
+
+void PointManager::DrawAllClusters(int time, glm::mat4 mvp){
+    printf("DRAWING THEM ALL!!!!!!!");
+    glCheckError();
+    //Bind shader and set args
+    lineShader->bindShader();
+    lineShader->setMatrix4("mvp", mvp);
+    lineShader->setFloat("minCutoff", pathlineMin);
+    lineShader->setFloat("maxCutoff", pathlineMax);
+   
+    int bufferSize;
+    if (firstTimeDrawingAll){
+      
+      megaClusterMegaBuffers = new GLuint[clusters.size()];
+      glGenBuffers(timeSteps, megaClusterMegaBuffers);
+
+      glGenBuffers(1, &megaClustersBuffer);
+      
+      std::vector<Vertex> verts;
+
+      for (int cluster = 0; cluster < clusters.size(); cluster++){
+        
+        float clusterDist = cluster * 1.0 / clusters.size();
+        for (int i = 0; i < clusters[cluster].size(); i++){
+          std::vector<Vertex> newVerts = points[clusters[cluster][i]].getPathlineVerts(true, clusterDist);
+          verts.insert(verts.end(), newVerts.begin(), newVerts.end());
+        }
+      }
+      Vertex* bufferData = verts.data();
+      bufferVertexCount = verts.size();
+      bufferSize = bufferVertexCount * sizeof(Vertex);
+      
+      glBindBuffer(GL_ARRAY_BUFFER, megaClustersBuffer);
+      glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_STATIC_DRAW);
+      glCheckError();
+
+    }
+    bufferSize = bufferVertexCount * sizeof(Vertex);
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
+    glCheckError();
+    //Draw points
+    glDrawArrays(GL_TRIANGLES,  0, bufferSize);
+    glCheckError();
+
+/*    glCheckError();
+    for (int cluster = 0; cluster < clusters.size(); cluster++){
+      //Bind buffer, resend data if needed
+      lineShader->setFloat("clusterId", cluster * 1.0 / clusters.size());
+      glBindBuffer(GL_ARRAY_BUFFER, megaClusterMegaBuffers[cluster]);
+
+      int bufferSize = 0;
+      if (firstTimeDrawingAll){
+        std::vector<Vertex> clusterVerts;
+        for(int i = 0; i < clusters[cluster].size(); i++){
+          std::vector<Vertex> newVerts = points[clusters[cluster][i]].getPathlineVerts();
+          clusterVerts.insert(clusterVerts.end(), newVerts.begin(), newVerts.end());
+        }
+        Vertex* bufferData = clusterVerts.data();
+        stupidVertexCount.push_back( clusterVerts.size());
+        bufferSize = clusterVerts.size() * sizeof(Vertex);
+        glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_DYNAMIC_DRAW);
+        glCheckError();
+      }
+      bufferSize = stupidVertexCount[cluster] * sizeof(Vertex);
+      //set vertex attributes
+      glEnableVertexAttribArray(0);
+      glEnableVertexAttribArray(1);
+      glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
+      glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
+      glCheckError();
+      //Draw points
+      glDrawArrays(GL_TRIANGLES,  0, bufferSize);
+      glCheckError();
+    }
+*/
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+
 void PointManager::Draw(int time, glm::mat4 mvp){
     numFramesSeen++;
     clock_t startTime = clock();
@@ -367,5 +635,11 @@ void PointManager::Draw(int time, glm::mat4 mvp){
     glCheckError();
     DrawPaths(time, mvp);
     glCheckError();
+    DrawClusters(time, mvp);
+    glCheckError();
+    if (drawAllClusters){
+      DrawAllClusters(time, mvp);
+    }
+
     //printf("Time end of frame: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
    }

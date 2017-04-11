@@ -9,7 +9,7 @@ uniform sampler2D colorMap;
 
 void main()
 {
-  vec3 lightDir = normalize(vec3(0, 0.5, 1));
+  vec3 lightDir = normalize(vec3(0, 0.0, 1));
   float lambertian = max(dot(lightDir, normal.xyz), 0.0);
   float ambient = 0.3; 
   float diffuse = 1. - ambient;
