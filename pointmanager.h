@@ -56,7 +56,7 @@ public:
     int seedCount;
     bool seedsChanged = true;
     int seedSearches = 0;
-    std::vector<std::pair<double, int>> scores;
+    std::vector<std::pair<double, int> > scores;
 
     std::vector< std::vector<int> > clusters;
 

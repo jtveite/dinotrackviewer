@@ -2,7 +2,7 @@
 
 out vec4 color;
 in vec2 gsColor;
-in vec4 normal;
+in vec3 normal;
 uniform sampler2D pathMap;
 uniform float clusterId = -1;
 uniform float minCutoff = 0.0;
