@@ -7,6 +7,7 @@ uniform sampler2D pathMap;
 uniform float clusterId = -1;
 uniform float minCutoff = 0.0;
 uniform float maxCutoff = 1.0;
+uniform float time = -1;
 
 void main()
 {
@@ -15,6 +16,11 @@ void main()
     return;
   }
   color = texture(pathMap, gsColor);
+
+  if ( abs(gsColor.x - time) < 0.02){
+    color = vec4(1.0, 1.0, 0.2, 1.0);
+  }
+
   /*
   if(clusterId > -.5){
     color = texture(pathMap, vec2(clusterId));

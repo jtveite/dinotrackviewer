@@ -4,6 +4,7 @@ project(dinotracks)
 
 set(dino_source_files
   newmain.cpp
+  slide.cpp
   pointmanager.cpp
   vrpoint.cpp
   shader.cpp
@@ -31,6 +32,7 @@ set(filter_source_files
 set(header_files
   pointmanager.h
   vrpoint.h
+  slide.h
   shader.h
   animationcontroller.h
   filter.h

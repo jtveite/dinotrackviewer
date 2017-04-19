@@ -69,12 +69,15 @@ public:
 
     float pathlineMin = 0.0;
     float pathlineMax = 1.0;
+    bool colorByCluster = false;
 private:
     void DrawBoxes();
     void DrawPoints(int time, glm::mat4 mvp);
     void DrawPaths(int time, glm::mat4 mvp);
     void DrawClusters(int time, glm::mat4 mvp);
     void DrawAllClusters(int time, glm::mat4 mvp);
+    void DoClusterBuffers();
+    
   
     int FindPointIndex(int pointID);
 
@@ -106,6 +109,8 @@ private:
     GLuint tempPathBuffer;
     GLuint clusterBuffer;
     GLuint megaClusterBuffer;
+
+    GLuint particleClusterBuffer;
     int clusterVertCount;
     bool useSeparateBuffers = true;
     GLuint* pointBuffers;

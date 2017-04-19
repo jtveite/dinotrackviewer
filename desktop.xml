@@ -1,6 +1,6 @@
 
 <MinVR>
-  <PluginPath>/users/jtveite/minvr/MinVR2/build/plugins</PluginPath>
+  <PluginPath>/users/jtveite/research/minvr/test/build/plugins</PluginPath>
 	<GLFWPlugin pluginType="MinVR_GLFW"/>
 	<OpenGLPlugin pluginType="MinVR_OpenGL"/>
 
@@ -13,8 +13,8 @@
   <AllowMaximize>1</AllowMaximize>
   <Visible>1</Visible>
   <SharedContextGroupID>-1</SharedContextGroupID>
-  <ContextVersionMajor>3</ContextVersionMajor>
-  <ContextVersionMinor>0</ContextVersionMinor>
+  <ContextVersionMajor>4</ContextVersionMajor>
+  <ContextVersionMinor>1</ContextVersionMinor>
   <UseGPUAffinity>1</UseGPUAffinity>
   <UseDebugContext>0</UseDebugContext>
   <MSAASamples>1</MSAASamples>

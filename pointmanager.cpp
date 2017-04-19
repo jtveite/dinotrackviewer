@@ -153,6 +153,7 @@ void PointManager::SetupDraw(bool allPaths){
 
       }
     }
+    DoClusterBuffers();
    printf("Time after arranging points: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
 }
 
@@ -301,6 +302,22 @@ void PointManager::ShowCluster(glm::vec3 pos, int time){
   
 }
 
+void PointManager::DoClusterBuffers(){
+  std::vector<int> clusterIDs (points.size());
+  for(int cluster = 0; cluster < clusters.size(); cluster++){
+    for (int j = 0; j < clusters[cluster].size(); j++){
+      clusterIDs[clusters[cluster][j]] = cluster;
+    }
+  }
+  
+  glGenBuffers(1, &particleClusterBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, particleClusterBuffer);
+  glBufferData(GL_ARRAY_BUFFER, clusterIDs.size() * sizeof(int), clusterIDs.data(), GL_STATIC_DRAW);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+}
+
 void PointManager::ReadMoVMFs(std::string fileName){
   movmfs = readMoVMFs(fileName);
 }
@@ -425,7 +442,8 @@ void PointManager::DrawPoints(int time, glm::mat4 mvp){
       Vertex* bufferData = pointArray->data();
       glBufferData(GL_ARRAY_BUFFER, bufferSize, bufferData, GL_DYNAMIC_DRAW);
     }
-    glCheckError();
+
+   glCheckError();
 
     //set vertex attributes
     glEnableVertexAttribArray(0);
@@ -433,6 +451,16 @@ void PointManager::DrawPoints(int time, glm::mat4 mvp){
     glCheckError();
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
+ 
+ 
+    if (colorByCluster){
+      glBindBuffer(GL_ARRAY_BUFFER, particleClusterBuffer);
+      glEnableVertexAttribArray(2);
+      glVertexAttribPointer(2, 1, GL_INT, GL_FALSE, 0, 0);
+      pointShader->setFloat("numClusters", clusters.size());
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    }
     
     glCheckError();
 
@@ -454,6 +482,8 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
     lineShader->setMatrix4("mvp", mvp);
     lineShader->setFloat("minCutoff", pathlineMin);
     lineShader->setFloat("maxCutoff", pathlineMax);
+    float t = time * 1.0 / timeSteps;
+    lineShader->setFloat("time", t);
     glCheckError();
 
     //Bind buffer, resend data if needed

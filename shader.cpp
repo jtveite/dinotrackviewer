@@ -38,7 +38,6 @@ void MyShader::setShaders(std::string vertName, std::string geoName, std::string
     glShaderSource(vertShader, 1, &cs, NULL);
     cs = fragString.c_str();
     glShaderSource(fragShader, 1, &cs, NULL);
-
     if (usingGeom){
       printf("loading geometry shader.\n");
       std::string geomString = readFile(geoName);
@@ -52,7 +51,6 @@ void MyShader::setShaders(std::string vertName, std::string geoName, std::string
       glCompileShader(geomShader);
     }
     glCompileShader(fragShader);
-
     program = glCreateProgram();
 
     glAttachShader(program, vertShader);

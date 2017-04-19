@@ -2,9 +2,10 @@
 layout(points) in;
 layout(triangle_strip, max_vertices=85) out;
 in vec2 vertexColor[];
-
+in float vertexCluster[];
 
 out vec2 gsColor;
+out float gsCluster;
 out vec4 normal;
 out vec4 position;
 
@@ -30,6 +31,7 @@ void main ()
   float pgap = radians(layers_gap);
   float pi = 3.1415926;
   gsColor = vertexColor[0];
+  gsCluster = vertexCluster[0];
   for (float up = 0; up <= pi; up += pgap){
     float phi = up;
     for (float around = 0; around <= 2 * pi; around += tgap){

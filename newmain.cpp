@@ -25,7 +25,7 @@
 #include <GL/glu.h>
 #endif
 
-
+#include "slide.h"
 #include "vrpoint.h"
 #include "vertex.h"
 #include "filter.h"
@@ -84,6 +84,7 @@ public:
     //_pm->ReadMoVMFs("paths.movm");
     _pm->ReadClusters("active.clusters");
     _pm->ReadPathlines("active.pathlines");
+    _pm->colorByCluster = true;
     ac.setFrameCount(_pm->getLength());
     ac.setSpeed(15);
     mode = Mode::STANDARD;
@@ -370,6 +371,7 @@ public:
       glewExperimental = GL_TRUE;
       glewInit();
       _pm->SetupDraw();
+      _slide.Initialize("ruler.png", glm::vec3(0,0,0), glm::vec3(0,0.117,0), glm::vec3(0,0,0.004));
       _fmv.ReadFiles("feet.feet");
       first = false;
     }
@@ -535,6 +537,9 @@ public:
                 if (showFoot){
                   _fmv.Draw(time, MVP);
                 }
+                glCheckError();
+                _slide.Draw(MVP);
+                glCheckError();
 		}
 	}
 
@@ -566,6 +571,7 @@ protected:
   WebUpdateReader* _wur;
   bool iterateClusters = false;
   float time;
+  Slide _slide;
 };
 
 
