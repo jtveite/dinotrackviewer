@@ -185,8 +185,8 @@ public:
     else if (eventName == "/Kbd2_Down" || eventName == "/Mouse_Down_Down"){
       //mode = Mode::CLUSTER;
       //mode = Mode::ANIMATION;
-      mode = Mode::PATHSIZE;
-
+      //mode = Mode::PATHSIZE;
+      _pm->colorByCluster = ! _pm->colorByCluster;
     }
     else if (eventName == "/Kbd3_Down" || eventName == "/Mouse_Left_Down"){
       //mode = Mode::FILTER;

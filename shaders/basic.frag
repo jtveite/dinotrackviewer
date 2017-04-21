@@ -15,8 +15,13 @@ void main()
   float ambient = 0.3; 
   float diffuse = 1. - ambient;
   vec4 baseColor = texture(colorMap, gsColor);
+
   if (numClusters > 0){
+    
     baseColor = texture(colorMap, vec2(gsCluster / numClusters, 0.5));
+    if (gsCluster < 0.5){
+      baseColor = vec4(0.3, 0.3, 0.3, 1.0);
+    }
   }
   color = baseColor * (ambient + diffuse * lambertian);
 }
