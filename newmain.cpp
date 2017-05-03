@@ -81,6 +81,8 @@ public:
     _pm = new PointManager();
     //_pm->ReadFile("data/slices-68-trimmed.out");
     _pm->ReadFile("active-dataset.out");
+    printf("Loaded file with %d timesteps.\n", _pm->getLength());
+    std::cout << _pm->getLength() << std::endl;
     //_pm->ReadMoVMFs("paths.movm");
     _pm->ReadClusters("active.clusters");
     _pm->ReadPathlines("active.pathlines");
@@ -169,6 +171,9 @@ public:
       if(_moving){
         _owm = wandPos / _lastWandPos * _owm;
       }
+      if (_movingSlide){
+        _slideMat = wandPos / _lastWandPos * _slideMat;
+      }
       _lastWandPos = wandPos;
     }
 
@@ -187,6 +192,7 @@ public:
       //mode = Mode::ANIMATION;
       //mode = Mode::PATHSIZE;
       _pm->colorByCluster = ! _pm->colorByCluster;
+      std::cout << _pm->colorByCluster << std::endl;
     }
     else if (eventName == "/Kbd3_Down" || eventName == "/Mouse_Left_Down"){
       //mode = Mode::FILTER;
@@ -209,6 +215,12 @@ public:
     }
     else if (eventName == "/MouseBtnLeft_Up" || eventName == "/Wand_Bottom_Trigger_Up"){
       _moving = false;
+    }
+    else if (eventName == "/Wand_Joystick_Press_Down"){
+      _movingSlide = true;
+    }
+    else if (eventName == "/Wand_Joystick_Press_Up"){
+      _movingSlide = false;
     }
     else if (eventName == "/KbdQ_Down" || eventName == "/Wand_Trigger_Top_Change"){
       _placePathline = true;
@@ -371,7 +383,7 @@ public:
       glewExperimental = GL_TRUE;
       glewInit();
       _pm->SetupDraw();
-      _slide.Initialize("ruler.png", glm::vec3(0,0,0), glm::vec3(0,0.117,0), glm::vec3(0,0,0.004));
+      _slide.Initialize("slide.png", glm::vec3(3,-3,0), glm::vec3(0,2,0), glm::vec3(0,0,1.544));
       _fmv.ReadFiles("feet.feet");
       first = false;
     }
@@ -389,157 +401,95 @@ public:
 			//glClear(GL_DEPTH_BUFFER_BIT);
       glCheckError();
 
-            glm::mat4 M, V, P;
-            glm::mat4 MVP;
-            if (renderState->exists("ProjectionMatrix", "/")) {
-                // This is the typical case where the MinVR DisplayGraph contains
-                // an OffAxisProjectionNode or similar node, which sets the
-                // ProjectionMatrix and ViewMatrix based on head tracking data.
-           /* 
-                glMatrixMode(GL_PROJECTION);
-                glLoadIdentity();*/
-                VRMatrix4 PP = renderState->getValue("ProjectionMatrix", "/");
-                //glLoadMatrixd(PP.m);
-                    
-              //  glMatrixMode(GL_MODELVIEW);
-              //  glLoadIdentity();
-              
-                // In the original adaptee.cpp program, keyboard and mouse commands
-                // were used to adjust the camera.  Now that we are creating a VR
-                // program, we want the camera (Projection and View matrices) to
-                // be controlled by head tracking.  So, we switch to having the
-                // keyboard and mouse control the Model matrix.  Guideline: In VR,
-                // put all of the "scene navigation" into the Model matrix and
-                // leave the Projection and View matrices for head tracking.
-                VRMatrix4 MM = VRMatrix4::translation(VRVector3(0.0, 0.0, -_radius)) *
-                              VRMatrix4::rotationX(_vertAngle) *
-                              VRMatrix4::rotationY(_horizAngle);
-              
-                VRMatrix4 VV= renderState->getValue("ViewMatrix", "/");
-                //glLoadMatrixd((VV*MM).m);
+      glm::mat4 M, V, P;
+      glm::mat4 MVP;
+      if (renderState->exists("ProjectionMatrix", "/")) {
+          // This is the typical case where the MinVR DisplayGraph contains
+          // an OffAxisProjectionNode or similar node, which sets the
+          // ProjectionMatrix and ViewMatrix based on head tracking data.
+          VRMatrix4 PP = renderState->getValue("ProjectionMatrix", "/");
+          
+          // In the original adaptee.cpp program, keyboard and mouse commands
+          // were used to adjust the camera.  Now that we are creating a VR
+          // program, we want the camera (Projection and View matrices) to
+          // be controlled by head tracking.  So, we switch to having the
+          // keyboard and mouse control the Model matrix.  Guideline: In VR,
+          // put all of the "scene navigation" into the Model matrix and
+          // leave the Projection and View matrices for head tracking.
+          VRMatrix4 MM = VRMatrix4::translation(VRVector3(0.0, 0.0, -_radius)) *
+                        VRMatrix4::rotationX(_vertAngle) *
+                        VRMatrix4::rotationY(_horizAngle);
+        
+          VRMatrix4 VV= renderState->getValue("ViewMatrix", "/");
+          //glLoadMatrixd((VV*MM).m);
+          V = glm::make_mat4(VV.m);
+          P = glm::make_mat4(PP.m);
+          M = glm::make_mat4(MM.m);
+      }
+      else {
+          // If the DisplayGraph does not contain a node that sets the
+          // ProjectionMatrix and ViewMatrix, then we must be in a non-headtracked
+          // simple desktop mode.  We can just set the projection and modelview
+          // matrices the same way as in adaptee.cpp.
+                        
+          
+          P = glm::perspective(1.6f*45.f, 1.f, 0.1f, 100.0f);
 
-                /*
-                P  = glm::mat4(PP[0][0], PP[0][1], PP[0][2], PP[0][3],
-                               PP[1][0], PP[1][1], PP[1][2], PP[1][3],
-                               PP[2][0], PP[2][1], PP[2][2], PP[2][3],
-                               PP[3][0], PP[3][1], PP[3][2], PP[3][3]);
-                //P = glm::transpose(P);
-                VV = VV * MM;
-                V  = glm::mat4(VV[0][0], VV[0][1], VV[0][2], VV[0][3],
-                               VV[1][0], VV[1][1], VV[1][2], VV[1][3],
-                               VV[2][0], VV[2][1], VV[2][2], VV[2][3],
-                               VV[3][0], VV[3][1], VV[3][2], VV[3][3]);
-                VRMatrix4 comb = (PP * VV * MM);
-                MVP  = glm::mat4(comb[0][0], comb[0][1], comb[0][2], comb[0][3],
-                               comb[1][0], comb[1][1], comb[1][2], comb[1][3],
-                               comb[2][0], comb[2][1], comb[2][2], comb[2][3],
-                               comb[3][0], comb[3][1], comb[3][2], comb[3][3]);
-                V = glm::transpose(V);
-                P = glm::transpose(P);
-                MVP = P * V;*/
-                V = glm::make_mat4(VV.m);
-                P = glm::make_mat4(PP.m);
-                M = glm::make_mat4(MM.m);
+          glm::vec3 pos = glm::vec3(_radius * cos(_horizAngle) * cos(_vertAngle),
+                                    -_radius * sin(_vertAngle),
+                                    _radius * sin(_horizAngle) * cos(_vertAngle));
+          glm::vec3 up = glm::vec3( cos(_horizAngle) * sin(_vertAngle),
+                                    cos(_vertAngle),
+                                    sin(_horizAngle) * sin(_vertAngle));
+
+          V = glm::lookAt(pos, glm::vec3(0.f), up);
+         
+       }
+
+        glm::mat4 scale = glm::scale(glm::mat4(), glm::vec3(40,40,40));
+        glm::mat4 translate = glm::translate(glm::mat4(), glm::vec3(1, -1, 0));
+         
+
+        //in desktop mode, +x is away from camera, +z is right, +y is up 
+        //M = translate * scale;
+        glm::mat4 slideM = _slideMat * M;
+        M = _owm * M * translate * scale;
+        //V = glm::transpose(V);
+        MVP = P * V * M;
+        glm::mat4 t = V ;
+        
+         
+        glm::vec3 location = glm::vec3(_lastWandPos[3]);
+        glm::vec4 modelPos = glm::inverse(M) * glm::vec4(location, 1.0);
+        _pm->TempPathline(glm::vec3(modelPos), time);
+            /*printf("World space location: %f, %f, %f\n", location.x, location.y, location.z);
+            printf("Model space location: %f, %f, %f\n", modelPos.x, modelPos.y, modelPos.z);
+            printMat4(glm::inverse(M));
+            printMat4(M);*/
+        if (_placePathline){
+            _placePathline = false;
+            if (mode == Mode::PREDICT){
+              _pm->ShowCluster(glm::vec3(modelPos), time);
             }
-            else {
-                // If the DisplayGraph does not contain a node that sets the
-                // ProjectionMatrix and ViewMatrix, then we must be in a non-headtracked
-                // simple desktop mode.  We can just set the projection and modelview
-                // matrices the same way as in adaptee.cpp.
-                /*
-      glCheckError();
-                glMatrixMode(GL_PROJECTION);
-      glCheckError();
-                glLoadIdentity();
-      glCheckError();
-                gluPerspective(1.6*45.f, 1.f, 0.1f, 100.0f);
-      glCheckError();
-                glMatrixMode(GL_MODELVIEW);
-      glCheckError();
-                glLoadIdentity();
-      glCheckError();
-              
-                double cameraPos[3];
-                cameraPos[0] = _radius * cos(_horizAngle) * cos(_vertAngle);
-                cameraPos[1] = -_radius * sin(_vertAngle);
-                cameraPos[2] = _radius * sin(_horizAngle) * cos(_vertAngle);
-    
-                double cameraAim[3];
-                cameraAim[0] = cos(_horizAngle) * sin(_vertAngle);
-                cameraAim[1] = cos(_vertAngle);
-                cameraAim[2] = sin(_horizAngle) * sin(_vertAngle);
-              
-                double targetPos[3] = {0.0f, 0.0f, 0.0f};
-      glCheckError();
-               gluLookAt (cameraPos[0], cameraPos[1], cameraPos[2],
-                           targetPos[0], targetPos[1], targetPos[2],
-                           cameraAim[0], cameraAim[1], cameraAim[2]);
- 
-      glCheckError();
-*/                                 
-                
-                P = glm::perspective(1.6f*45.f, 1.f, 0.1f, 100.0f);
-
-                glm::vec3 pos = glm::vec3(_radius * cos(_horizAngle) * cos(_vertAngle),
-                                          -_radius * sin(_vertAngle),
-                                          _radius * sin(_horizAngle) * cos(_vertAngle));
-                glm::vec3 up = glm::vec3( cos(_horizAngle) * sin(_vertAngle),
-                                          cos(_vertAngle),
-                                          sin(_horizAngle) * sin(_vertAngle));
-
-                V = glm::lookAt(pos, glm::vec3(0.f), up);
-                
-    //            V[0] = glm::vec4(0, 0, -1, 0);
-      //          V[1] = glm::vec4(0, 1, 0, 0);
-        //        V[2] = glm::vec4(1, 0, 0, 0);
-          //      V[3] = glm::vec4(0, 0, -.1, 1);
-
-
+            else{
+              _pm->AddPathline(glm::vec3(modelPos), time);
             }
+        }
+        if (_placeClusterSeed){
+          _pm->ShowCluster(glm::vec3(modelPos), time);
+        }
 
-                glm::mat4 scale = glm::scale(glm::mat4(), glm::vec3(40,40,40));
-                glm::mat4 translate = glm::translate(glm::mat4(), glm::vec3(1, -1, 0));
-                 
-
-                //in desktop mode, +x is away from camera, +z is right, +y is up 
-                //M = translate * scale;
-                M = _owm * M * translate * scale;
-                //V = glm::transpose(V);
-                MVP = P * V * M;
-                glm::mat4 t = V ;
-                
-                 
-                glm::vec3 location = glm::vec3(_lastWandPos[3]);
-                glm::vec4 modelPos = glm::inverse(M) * glm::vec4(location, 1.0);
-                _pm->TempPathline(glm::vec3(modelPos), time);
-                    /*printf("World space location: %f, %f, %f\n", location.x, location.y, location.z);
-                    printf("Model space location: %f, %f, %f\n", modelPos.x, modelPos.y, modelPos.z);
-                    printMat4(glm::inverse(M));
-                    printMat4(M);*/
-                if (_placePathline){
-                    _placePathline = false;
-                    if (mode == Mode::PREDICT){
-                      _pm->ShowCluster(glm::vec3(modelPos), time);
-                    }
-                    else{
-                      _pm->AddPathline(glm::vec3(modelPos), time);
-                    }
-                }
-                if (_placeClusterSeed){
-                  _pm->ShowCluster(glm::vec3(modelPos), time);
-                }
-
-                
-                
-                
-                glCheckError();
-                _pm->Draw(time, MVP );
-                if (showFoot){
-                  _fmv.Draw(time, MVP);
-                }
-                glCheckError();
-                _slide.Draw(MVP);
-                glCheckError();
+        
+        
+        
+        glCheckError();
+        _pm->Draw(time, MVP );
+        if (showFoot){
+          _fmv.Draw(time, MVP);
+        }
+        glCheckError();
+        _slide.Draw(P * V * slideM);
+        glCheckError();
 		}
 	}
 
@@ -572,6 +522,8 @@ protected:
   bool iterateClusters = false;
   float time;
   Slide _slide;
+  glm::mat4 _slideMat;
+  bool _movingSlide = false;
 };
 
 

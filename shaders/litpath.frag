@@ -17,7 +17,7 @@ void main()
   }
   color = texture(pathMap, gsColor);
 
-  if ( abs(gsColor.x - time) < 0.02){
+  if ( abs(time - gsColor.x) < 0.01){
     color = vec4(1.0, 1.0, 0.2, 1.0);
   }
 

@@ -4,6 +4,7 @@ Slide::Slide(std::string texture, glm::vec3 bl, glm::vec3 right, glm::vec3 up){
   Initialize(texture, bl, right, up);
 }
 
+
 void Slide::Initialize(std::string texture, glm::vec3 bl, glm::vec3 right, glm::vec3 up){
   initialized = true; 
 
@@ -21,7 +22,7 @@ void Slide::Initialize(std::string texture, glm::vec3 bl, glm::vec3 right, glm::
   verts.push_back(bl);
   uvs.push_back(glm::vec2(0, 0));
   verts.push_back(bl + right);
-  uvs.push_back(glm::vec2(0, 1));
+  uvs.push_back(glm::vec2(1, 0));
   verts.push_back(bl + right + up);
   uvs.push_back(glm::vec2(1, 1));
   
@@ -30,7 +31,7 @@ void Slide::Initialize(std::string texture, glm::vec3 bl, glm::vec3 right, glm::
   verts.push_back(bl + right + up);
   uvs.push_back(glm::vec2(1, 1));
   verts.push_back(bl + up);
-  uvs.push_back(glm::vec2(1, 0));
+  uvs.push_back(glm::vec2(0, 1));
 
 
   //Put vertex data in buffers
@@ -61,7 +62,7 @@ void Slide::Draw(glm::mat4 mvp){
   
   glCheckError();
   glBindBuffer(GL_ARRAY_BUFFER, uvBuffer);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), NULL);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), NULL);
   glCheckError();
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
