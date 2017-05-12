@@ -2,7 +2,10 @@
 #define VERTEX_H
 #include "glm/glm.hpp"
 
-
+/**
+ * Represents a vertex to send to OpenGL
+ * Currently for convenience only have the one form for all possible applications (should change this probably).
+ */
 struct Vertex{
 public:
   glm::vec3 position;

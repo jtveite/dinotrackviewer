@@ -371,7 +371,7 @@ public:
       glewExperimental = GL_TRUE;
       glewInit();
       _pm->SetupDraw();
-      _slide.Initialize("ruler.png", glm::vec3(0,0,0), glm::vec3(0,0.117,0), glm::vec3(0,0,0.004));
+      _slide.Initialize("ruler.png", glm::vec3(0,0,0), glm::vec3(0,2.117,0), glm::vec3(0,0,1.004));
       _fmv.ReadFiles("feet.feet");
       first = false;
     }
