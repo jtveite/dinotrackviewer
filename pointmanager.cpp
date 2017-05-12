@@ -303,7 +303,7 @@ void PointManager::ShowCluster(glm::vec3 pos, int time){
 }
 
 void PointManager::DoClusterBuffers(){
-  std::vector<int> clusterIDs (points.size());
+  std::vector<int> clusterIDs (points.size(), -1);
   for(int cluster = 0; cluster < clusters.size(); cluster++){
     for (int j = 0; j < clusters[cluster].size(); j++){
       clusterIDs[clusters[cluster][j]] = cluster;
@@ -461,6 +461,9 @@ void PointManager::DrawPoints(int time, glm::mat4 mvp){
       glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     }
+    else{
+      pointShader->setFloat("numClusters", 0);
+    }
     
     glCheckError();
 
@@ -483,6 +486,7 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
     lineShader->setFloat("minCutoff", pathlineMin);
     lineShader->setFloat("maxCutoff", pathlineMax);
     float t = time * 1.0 / timeSteps;
+    printf("%f\n", t);
     lineShader->setFloat("time", t);
     glCheckError();
 
