@@ -6,6 +6,7 @@ in float gsCluster;
 in vec4 normal;
 in vec4 position;
 uniform sampler2D colorMap;
+uniform sampler2D clusterMap;
 uniform float numClusters = 0;
 
 void main()
@@ -18,13 +19,13 @@ void main()
 
   if (numClusters > 0){
     
-    baseColor = texture(colorMap, vec2(gsCluster / numClusters, 0.5));
+    baseColor = texture(clusterMap, vec2(gsCluster / numClusters, 0.5));
     if (gsCluster < -0.5){
       baseColor = vec4(0.3, 0.3, 0.4, 1.0);
     }
   }
   else{
-    baseColor = texture(colorMap, gsColor);// vec4(1, 0,0,1);
+    baseColor = texture(clusterMap, gsColor);// vec4(1, 0,0,1);
   }
   color = baseColor * (ambient + diffuse * lambertian);
 }

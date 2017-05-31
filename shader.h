@@ -10,6 +10,20 @@
 #endif
 #include <string>
 #include "glm/glm.hpp"
+#include <unordered_map>
+
+struct Texture{
+public:
+  Texture(std::string texName, GLuint texTarget, GLuint texID) {
+    name = texName;
+    target = texTarget;
+    ID = texID;
+  }
+  Texture() {};
+  std::string name;
+  GLuint target;
+  GLuint ID;
+};
 
 class MyShader{
 public:
@@ -51,6 +65,7 @@ private:
   GLuint textureTarget;
   GLuint textureID;
   std::string textureName;
+  std::unordered_map<std::string, Texture> textures;
   GLuint vertShader;
   GLuint geomShader;
   GLuint fragShader;
@@ -59,3 +74,4 @@ private:
 
   bool hasTexture = false;
 };
+

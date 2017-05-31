@@ -137,6 +137,7 @@ void PointManager::SetupDraw(bool allPaths){
     pointShader = new MyShader("shaders/basic.vert", "shaders/basic.geom", "shaders/basic.frag");
     pointShader->checkErrors();
     pointShader->loadTexture("colorMap", "colormap.jpg");
+    pointShader->loadTexture("clusterMap", "clusters.png");
     lineShader = new MyShader("shaders/litpath.vert", "shaders/litpath.geom",  "shaders/litpath.frag");
     lineShader->checkErrors();
     lineShader->loadTexture("pathMap", "pathmap.jpg");

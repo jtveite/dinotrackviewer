@@ -17,10 +17,14 @@ void main()
   }
   color = texture(pathMap, gsColor);
 
-  if ( abs(time - gsColor.x) < 0.01){
+ /* vec4 red = vec4(1,0,0,1);
+  vec4 blue = vec4(0,0,1,1);
+  color = gsColor.x * red + (1-gsColor.x) * blue;*/
+  
+  if ( abs(time - (1- gsColor.x)) < 0.01){
     color = vec4(1.0, 1.0, 0.2, 1.0);
   }
-
+  //color.g = time;
   /*
   if(clusterId > -.5){
     color = texture(pathMap, vec2(clusterId));
@@ -30,6 +34,7 @@ void main()
   float lambertian = max(dot(lightDir, normal.xyz), 0.0);
   float ambient = 0.3;
   float diffuse = 1. - ambient;
+  
 
   color = color * (ambient + diffuse * lambertian);
   

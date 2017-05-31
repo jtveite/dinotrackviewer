@@ -93,7 +93,7 @@ void MyShader::bindShader(){
     if ((err = glGetError()) != 0){
         printf("Error %d at use program\n", err);
     }
-  if(hasTexture){
+  /*if(hasTexture){
       GLint screenLoc = glGetUniformLocation(program, textureName.c_str());
       if ((err = glGetError()) != 0){
           printf("Error %d at ahi\n", err);
@@ -111,6 +111,30 @@ void MyShader::bindShader(){
           printf("Error %d at d\n", err);
       }
     glBindTexture(textureTarget, textureID);
+  }*/
+
+  if (textures.size() > 0){
+    for(auto it = textures.begin(); it != textures.end(); it++){
+      Texture t = it->second;
+
+      GLint screenLoc = glGetUniformLocation(program, t.name.c_str());
+      if ((err = glGetError()) != 0){
+          printf("Error %d at ahi\n", err);
+      }
+      glUniform1i(screenLoc, 0);
+      if ((err = glGetError()) != 0){
+          printf("Error %d at b\n", err);
+      }
+      glEnable(t.target);
+      if ((err = glGetError()) != 0){
+          printf("Error %d at c\n", err);
+      }
+      glActiveTexture(GL_TEXTURE0);
+      if ((err = glGetError()) != 0){
+          printf("Error %d at d\n", err);
+      }
+      glBindTexture(t.target, t.ID);
+    }
   }
     if ((err = glGetError()) != 0){
         printf("Error %d at end of bind shader\n", err);
@@ -174,9 +198,12 @@ void MyShader::checkProgramError(){
 void MyShader::loadTexture(std::string argument, std::string fileName){
   int w, h, comp;
   unsigned char* image = stbi_load(fileName.c_str(), &w, &h, &comp, 0);
-  textureTarget = GL_TEXTURE_2D;
-  glGenTextures(1, &textureID);
-  glBindTexture(GL_TEXTURE_2D, textureID);
+
+  Texture t;
+
+  t.target = GL_TEXTURE_2D;
+  glGenTextures(1, &t.ID);
+  glBindTexture(GL_TEXTURE_2D, t.ID);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   if (comp == 3){
@@ -190,6 +217,7 @@ void MyShader::loadTexture(std::string argument, std::string fileName){
   stbi_image_free(image);
 
 
-  textureName = argument;
+  t.name = argument;
   hasTexture = true;
+  textures[argument] =  t;
 }
