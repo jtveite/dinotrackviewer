@@ -1,6 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
-project(dinotracks)
-
+project(dinotracks) 
 
 set(dino_source_files
   newmain.cpp
@@ -52,7 +51,30 @@ set(resource_files
 set (MINVR_ROOT /Users/jtveite/research/minvr/test CACHE STRING "Root
 directory for MinVR")
 
+find_package(Doxygen)
 
+option(BUILD_DOCUMENTATION "Create and install the HTML based API documentation (requires Doxygen)")
+
+if(BUILD_DOCUMENTATION)
+  if(NOT DOXYGEN_FOUND)
+    message(FATAL_ERROR "Doxygen is needed to build the documentation.")
+  endif()
+
+  message("-- Configured to build documentation.  Use 'make doc'.")
+
+  # Process the config file and put it in the build directory.
+  set(doxyfile_in ${CMAKE_CURRENT_SOURCE_DIR}/doc/dinotrackviewer.doxygen.in)
+  set(doxyfile ${CMAKE_BINARY_DIR}/dinotrackviewer.doxygen)
+  configure_file(${doxyfile_in} ${doxyfile} @ONLY)
+
+  add_custom_target(doc
+    COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMENT "Generating API documentation with Doxygen"
+    VERBATIM)
+
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html DESTINATION share/doc)
+endif()
 
 file(COPY ${resource_files} DESTINATION ${CMAKE_BINARY_DIR}/bin)
 

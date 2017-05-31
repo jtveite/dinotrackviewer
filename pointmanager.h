@@ -22,15 +22,48 @@
 #include "movm.h"
 
 
-
+/**
+ * PointManager manages most of the things dealing with the points, including loading and displaying them.
+ * (Currently a little bit monolithic and not particularly necessary. Plan to take most drawing functionality out to separate classes in future.)
+ */
 class PointManager
 {
 public:
     PointManager();
+    /** 
+     * \brief Loads a file consisting of a number of points.
+     * 
+     * Format is each point on it's own line, with an id and then triple of XYZ
+     * @param fileName Name of the file to be loaded
+     * @param debug Optionally enable debug output.
+     */
     void ReadFile(std::string fileName, bool debug = false);
+    /*!
+     * \brief Loads a list of VonMisFisher distributions for each point
+     * 
+     * @param fileName Name of the file to be loaded.
+     */
     void ReadMoVMFs(std::string fileName);
+    /*!
+     * \brief Performs OpenGL initialization functionality.
+     * 
+     * Should be called after OpenGL instance is initialized.
+     * For MinVR apps this happens during the first draw call.
+     */
     void SetupDraw(bool allPaths = false);
+    /*!
+     * \brief Reads pathlines which should be displayed initially
+     * 
+     * In addition to interactively showing paths close to the viewer, we can show a set of them chosen beforehand.
+     * This function lets us load a file and display all the pathlines contained in it.
+     * The file should contain a list of particle IDs on separate lines.
+     */
     void ReadPathlines(std::string fileName);
+	/** 
+     * Draws everything to be drawn on a given frame.
+	 * @param time The frame to be drawn.
+	 * @param mvp the Model-View-Projection matrix to use to draw.
+	 */
     void Draw(int time, glm::mat4 mvp);
     void AddPathline(glm::vec3 pos, int time);
     void AddPathline(VRPoint& point);

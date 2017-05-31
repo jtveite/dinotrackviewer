@@ -4,7 +4,13 @@
 #include <chrono>
 
 
-
+/**
+ * AnimationController controls the timing of the animation.
+ * The primary purpose is to keep the animation synchronized between the various nodes.
+ * The secondary purpose (currently disabled) is to keep a constant animation rate despite changing framerate.
+ * To operate the getFrame function should be called once per graphics frame to get the animation frame to be rendered.
+ * It is critical to either use the constructor which specifies the number of frames or to manually set it using setFrameCount.
+ */
 class AnimationController
 {
 

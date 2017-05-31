@@ -2,6 +2,11 @@
 #include <string>
 #include "vrpoint.h"
 
+/*
+ * PathFilter provides an alternate entry point to the program.
+ * It allows for precomputation of sets of particles to display as path.
+ * Currently only the Poisson method is implemented.
+ */
 class PathFilter
 {
 public:

@@ -28,7 +28,9 @@
 void dummy();
 
 GLenum glCheckError_(const char *file, int line);
-
+/**
+ * A utility function to generate useful error messsages easily.
+ */
 #define glCheckError() glCheckError_(__FILE__, __LINE__) 
 
 
