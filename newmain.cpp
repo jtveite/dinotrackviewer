@@ -45,10 +45,9 @@ using namespace MinVR;
 
 
 void printMatrix4(VRMatrix4 m){
-  float* arr = m.getArray();
   for(int i = 0; i < 4; i++){
     for(int j = 0; j < 4; j++){
-      printf("%6.2f ", arr[4*i+j]);
+      printf("%6.2f ", m[i][j]);
     }
     printf("\n");
   }
@@ -69,7 +68,7 @@ class MyVRApp : public VREventHandler, public VRRenderHandler, public UpdateChec
 public:
   MyVRApp(int argc, char** argv) : _vrMain(NULL), _quit(false), first(true) {
 		_vrMain = new VRMain();
-        _vrMain->initializeWithMinVRCommandLineParsing(argc, argv);
+        _vrMain->initialize(argc, argv);
       	_vrMain->addEventHandler(this);
 		_vrMain->addRenderHandler(this);
 
@@ -158,8 +157,7 @@ public:
 	}
 
 	// Callback for event handling, inherited from VREventHandler
-	virtual void onVREvent(const VREvent &event) {
-    std::string eventName = event.getName();
+	virtual void onVREvent(const std::string &eventName, VRDataIndex *eventData) {
     if (eventName != "/aimon_13_Change" &&
         eventName != "/aimon_14_Change" &&eventName != "/aimon_15_Change" && eventName != "/aimon_16_Change"){
 
@@ -167,16 +165,8 @@ public:
     }
 
     if (eventName == "/Wand_Move"){
-      //VRMatrix4 wandPosition = eventData->getValue("/Wand_Move/Transform");
-      const float* data;
-      if (event.getDataFields().size() == 1){
-        data = event.getDataAsFloatArray(event.getDataFields()[0]);
-      }
-      else{
-        printf("WHOOPS, MULTIPLE DATA FIELDS. eveRYbODY panic.\n");
-        return;
-      }
-      glm::mat4 wandPos = glm::make_mat4(data);
+      VRMatrix4 wandPosition = eventData->getValue("/Wand_Move/Transform");
+      glm::mat4 wandPos = glm::make_mat4(wandPosition.m);
       //printMat4(wandPos);
       if(_moving){
         _owm = wandPos / _lastWandPos * _owm;
@@ -189,7 +179,7 @@ public:
 
     if (eventName == "/KbdA_Down"){
       std::cout << "Test" << std::endl;
-      //std::cout << eventData->printStructure() << std::endl;
+      std::cout << eventData->printStructure() << std::endl;
     }
 
 
@@ -432,9 +422,9 @@ public:
         
           VRMatrix4 VV= renderState->getValue("ViewMatrix", "/");
           //glLoadMatrixd((VV*MM).m);
-          V = glm::make_mat4(VV.getArray());
-          P = glm::make_mat4(PP.getArray());
-          M = glm::make_mat4(MM.getArray());
+          V = glm::make_mat4(VV.m);
+          P = glm::make_mat4(PP.m);
+          M = glm::make_mat4(MM.m);
       }
       else {
           // If the DisplayGraph does not contain a node that sets the

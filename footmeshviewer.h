@@ -6,9 +6,9 @@
 #include <vector>
 #include <memory> //For the unique pointer
 /**
- * FootMeshViewer is a class that displays a 3D model throughout the animation.
+ * FootMeshViewer is a class that displays a 3D model throughout the animation
  *
- */
+ */.
 class FootMeshViewer{
 public:
   /**
