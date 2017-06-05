@@ -12,6 +12,8 @@ set(dino_source_files
   movm.cpp
   footmeshviewer.cpp
   webupdatereader.cpp
+  SimilarityEvaluator.cpp
+  PathAlignmentSimilarityEvaluator.cpp
   GLUtil.cpp
 )
 
@@ -39,6 +41,8 @@ set(header_files
   vertex.h
   footmeshviewer.h
   webupdatereader.h
+  SimilarityEvaluator.h
+  PathAlignmentSimilarityEvaluator.h
   GLUtil.h
 )
 
