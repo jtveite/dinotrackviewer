@@ -85,17 +85,15 @@ find_package(GLEW REQUIRED)
 
 include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_DIRS})
-include_directories(${MINVR_ROOT}/src)
+include_directories(${MINVR_ROOT}/include)
 
-link_directories(${MINVR_ROOT}/build/lib)
+link_directories(${MINVR_ROOT}/lib)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_executable(dino ${dino_source_files})
 add_executable(path-filter ${filter_source_files})
-add_executable(sogl vrexample.cpp)
 
 target_link_libraries(dino MinVR ${OPENGL_LIBRARIES}  ${GLEW_LIBRARIES} ${ALL_LIBS})
-target_link_libraries(sogl MinVR ${OPENGL_LIBRARIES}  ${GLEW_LIBRARIES} ${ALL_LIBS})
 target_link_libraries(path-filter ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES}
 ${ALL_LIBS})
