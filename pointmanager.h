@@ -21,6 +21,8 @@
 #include "glm/glm.hpp"
 #include "movm.h"
 
+class SimilarityEvaluator;
+
 
 /**
  * PointManager manages most of the things dealing with the points, including loading and displaying them.
@@ -77,6 +79,9 @@ public:
     void AddSeedPoint(glm::vec3 pos, int time);
     void SearchForSeeds(int target_count = 10);
     void ResetPrediction();
+
+    void FindClosestPoints(glm::vec3 pos, int t, int numPoints = 50);///< Finds the numPoints closest points to the selected one using simEval as the metric
+    SimilarityEvaluator* simEval;
 
     bool clustering = true;
     int currentCluster = -1;
