@@ -1,5 +1,6 @@
 #include "pointmanager.h"
 #include "vrpoint.h"
+#include "SimilarityEvaluator.h"
 
 #include <iostream>
 #include <fstream>
@@ -378,6 +379,16 @@ void PointManager::SearchForSeeds(int target_count){
   std::cout << std::endl;
   seedsChanged = false;
   seedSearches++;
+}
+
+void PointManager::FindClosestPoints(glm::vec3 pos, int t, int numPoints){
+  int bestIdx = FindPathline(pos, t);
+  std::vector<int> bestPaths = simEval->getMostSimilarPaths(this, bestIdx, numPoints);
+  for (auto idx : bestPaths){
+    AddPathline(points[idx]);
+  }
+ 
+
 }
 
 int PointManager::FindPointIndex(int pointID){
