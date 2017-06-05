@@ -8,7 +8,7 @@
 /**
  * FootMeshViewer is a class that displays a 3D model throughout the animation
  *
- */.
+ */
 class FootMeshViewer{
 public:
   /**
