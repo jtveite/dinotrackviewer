@@ -17,6 +17,21 @@ set(dino_source_files
   GLUtil.cpp
 )
 
+set(test_source_files
+  slide.cpp
+  pointmanager.cpp
+  vrpoint.cpp
+  shader.cpp
+  animationcontroller.cpp
+  filter.cpp
+  movm.cpp
+  footmeshviewer.cpp
+  webupdatereader.cpp
+  SimilarityEvaluator.cpp
+  PathAlignmentSimilarityEvaluator.cpp
+  GLUtil.cpp
+)
+
 
 
 set(filter_source_files
@@ -95,11 +110,14 @@ link_directories(${MINVR_ROOT}/build/lib)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+
 add_executable(dino ${dino_source_files})
 add_executable(path-filter ${filter_source_files})
-add_executable(sogl vrexample.cpp)
+add_executable(sim-test ${test_source_files})
+
+target_compile_definitions(sim-test PRIVATE TESTING)
 
 target_link_libraries(dino MinVR ${OPENGL_LIBRARIES}  ${GLEW_LIBRARIES} ${ALL_LIBS})
-target_link_libraries(sogl MinVR ${OPENGL_LIBRARIES}  ${GLEW_LIBRARIES} ${ALL_LIBS})
+target_link_libraries(sim-test MinVR ${OPENGL_LIBRARIES}  ${GLEW_LIBRARIES} ${ALL_LIBS})
 target_link_libraries(path-filter ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES}
 ${ALL_LIBS})

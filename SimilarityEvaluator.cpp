@@ -1,5 +1,7 @@
 #include "SimilarityEvaluator.h"
 
+#include <algorithm>
+
 
 
 ///To pass to std::nth_element for sorting purposes. 
