@@ -3,16 +3,19 @@ layout(points) in;
 layout(triangle_strip, max_vertices=85) out;
 in vec2 vertexColor[];
 in float vertexCluster[];
+in float vertexSimilarity[];
 
 out vec2 gsColor;
 out float gsCluster;
 out vec4 normal;
 out vec4 position;
+out float gsSimilarity;
 
 uniform mat4 mvp;
 
 uniform float rad;
 uniform float numClusters;
+uniform float maxDistance = -1;
 //float rad = 0.002;
 
 vec4 get_vertex(float theta, float phi){
@@ -33,11 +36,15 @@ void main ()
   float pi = 3.1415926;
   gsColor = vertexColor[0];
   gsCluster = vertexCluster[0];
+  gsSimilarity = vertexSimilarity[0];
 
 
   float radius = rad;
   if (numClusters > 0 && gsCluster < -0.5){
     radius *= 0.5;
+  }
+  if (maxDistance > 0 && gsSimilarity < -0.5){
+    radius *= 0.3;
   }
 
   for (float up = 0; up <= pi; up += pgap){

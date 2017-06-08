@@ -67,6 +67,10 @@ public:
 	 * @param mvp the Model-View-Projection matrix to use to draw.
 	 */
     void Draw(int time, glm::mat4 mvp);
+    /**
+     * Initializes (or rereads) the shaders from disk.
+     */
+    void SetShaders();
     void AddPathline(glm::vec3 pos, int time);
     void AddPathline(VRPoint& point);
     void ClearPathlines();
@@ -108,6 +112,7 @@ public:
     float pathlineMin = 0.0;
     float pathlineMax = 1.0;
     bool colorByCluster = false;
+    bool colorBySimilarity = false;
 private:
     void DrawBoxes();
     void DrawPoints(int time, glm::mat4 mvp);
@@ -147,6 +152,9 @@ private:
     GLuint tempPathBuffer;
     GLuint clusterBuffer;
     GLuint megaClusterBuffer;
+
+    GLuint particleSimilarityBuffer;
+    double maxSimilarityDistance;
 
     GLuint particleClusterBuffer;
     int clusterVertCount;

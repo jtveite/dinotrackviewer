@@ -135,14 +135,9 @@ void PointManager::SetupDraw(bool allPaths){
     glGenBuffers(1, &tempPathBuffer);
     glGenBuffers(1, &megaClusterBuffer);
     glGenBuffers(1, &clusterBuffer);
-    pointShader = new MyShader("shaders/basic.vert", "shaders/basic.geom", "shaders/basic.frag");
-    pointShader->checkErrors();
-    pointShader->loadTexture("colorMap", "colormap.jpg");
-    pointShader->loadTexture("clusterMap", "clusters.png");
-    lineShader = new MyShader("shaders/litpath.vert", "shaders/litpath.geom",  "shaders/litpath.frag");
-    lineShader->checkErrors();
-    lineShader->loadTexture("pathMap", "pathmap.jpg");
-
+    glGenBuffers(1, &particleSimilarityBuffer);
+    
+    SetShaders();
 
     if (allPaths){
       for(int i = 0; i < points.size(); i++){
@@ -157,6 +152,17 @@ void PointManager::SetupDraw(bool allPaths){
     }
     DoClusterBuffers();
    printf("Time after arranging points: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
+}
+
+void PointManager::SetShaders(){
+    pointShader = new MyShader("shaders/basic.vert", "shaders/basic.geom", "shaders/basic.frag");
+    pointShader->checkErrors();
+    pointShader->loadTexture("colorMap", "colormap.jpg");
+    pointShader->loadTexture("clusterMap", "clusters.png");
+    lineShader = new MyShader("shaders/litpath.vert", "shaders/litpath.geom",  "shaders/litpath.frag");
+    lineShader->checkErrors();
+    lineShader->loadTexture("pathMap", "pathmap.jpg");
+
 }
 
 void PointManager::ReadPathlines(std::string fileName){
@@ -382,14 +388,36 @@ void PointManager::SearchForSeeds(int target_count){
 }
 
 void PointManager::FindClosestPoints(glm::vec3 pos, int t, int numPoints){
+  clock_t startTime = clock();
   int bestIdx = FindPathline(pos, t);
-  std::vector<int> bestPaths = simEval->getMostSimilarPaths(this, bestIdx, numPoints);
+  std::vector<std::pair<int, double>> pathsims = simEval->getAllPathSimilarities(this, bestIdx);//Keep this around and find a way to recognize it to interactively increase # paths shown.
+  std::vector<float> similarities(points.size(), -1);
+  //I'm sure I could find a better way to do this...
+  maxSimilarityDistance = 0;
+  for (auto pair : pathsims){
+    similarities[pair.first] = pair.second;
+    maxSimilarityDistance = std::max(maxSimilarityDistance, pair.second);
+  }
+  printf("Farthest Point: %f.\n", maxSimilarityDistance);
+  
+  glBindBuffer(GL_ARRAY_BUFFER, particleSimilarityBuffer);
+  int bufferSize = similarities.size() * sizeof(float);
+  glBufferData(GL_ARRAY_BUFFER, bufferSize, similarities.data(), GL_STATIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  
+
+
+  std::vector<int> bestPaths = simEval->getMostSimilarPathsFromSimilarities(pathsims);
   for (auto idx : bestPaths){
     AddPathline(points[idx]);
   }
- 
 
+  printf("Time to find similarities: %f seconds.\n", ((float)(clock() - startTime) / CLOCKS_PER_SEC));
+  std::cout << std::endl;
+  colorBySimilarity = true;
 }
+
+
 
 int PointManager::FindPointIndex(int pointID){
   for(int i = 0; i < points.size(); i++){
@@ -476,6 +504,14 @@ void PointManager::DrawPoints(int time, glm::mat4 mvp){
     else{
       pointShader->setFloat("numClusters", 0);
     }
+    if (colorBySimilarity){
+      glBindBuffer(GL_ARRAY_BUFFER, particleSimilarityBuffer);
+      glEnableVertexAttribArray(3);
+      glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 0, 0);
+      pointShader->setFloat("maxDistance", maxSimilarityDistance);
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
     
     glCheckError();
 
@@ -498,7 +534,7 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
     lineShader->setFloat("minCutoff", pathlineMin);
     lineShader->setFloat("maxCutoff", pathlineMax);
     float t = time * 1.0 / timeSteps;
-    printf("%f\n", t);
+    //printf("%f\n", t);
     lineShader->setFloat("time", t);
     glCheckError();
 
