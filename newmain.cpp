@@ -33,6 +33,7 @@
 #include "animationcontroller.h"
 #include "footmeshviewer.h"
 #include "webupdatereader.h"
+#include "PathAlignmentSimilarityEvaluator.h"
 //#include "GLUtil.h"
 
 #include "glm/glm.hpp"
@@ -62,7 +63,7 @@ void printMat4(glm::mat4 m){
   }
 }
 
-enum struct Mode {STANDARD, ANIMATION, FILTER, SLICES, PREDICT, CLUSTER, PATHSIZE};
+enum struct Mode {STANDARD, ANIMATION, FILTER, SLICES, PREDICT, CLUSTER, PATHSIZE, SIMILARITY};
 
 class MyVRApp : public VREventHandler, public VRRenderHandler, public UpdateChecker {
 public:
@@ -87,6 +88,7 @@ public:
     _pm->ReadClusters("active.clusters");
     _pm->ReadPathlines("active.pathlines");
     _pm->colorByCluster = true;
+    _pm->simEval = new PathAlignmentSimilarityEvaluator();
     ac.setFrameCount(_pm->getLength());
     ac.setSpeed(15);
     mode = Mode::STANDARD;
@@ -203,8 +205,8 @@ public:
       _pm->currentCluster = -1;
     }
     else if (eventName == "/Kbd4_Down" || eventName == "/Mouse_Right_Down"){
-      mode = Mode::PREDICT;
-      _pm->clustering = true;
+      mode = Mode::SIMILARITY;
+      //_pm->clustering = true;
       //_pm->ClearPathlines();
       //mode = Mode::SLICES;
       //_pm->SetFilter(_slicer);
@@ -253,6 +255,9 @@ public:
       if (mode == Mode::PATHSIZE){
         _pm->pathlineMin -= 0.04; 
       }
+      if (mode == Mode::SIMILARITY){
+        _similarityCount /= 1.5;
+      }
     }
     else if (eventName == "/KbdUp_Down" || eventName == "/Wand_Up_Down"){
       if (mode == Mode::STANDARD){
@@ -283,6 +288,9 @@ public:
       if (mode == Mode::PATHSIZE){
         _pm->pathlineMin += 0.04; 
       }
+      if (mode == Mode::SIMILARITY){
+        _similarityCount *= 1.5;
+      }
     }
     else if (eventName == "/KbdLeft_Down" || eventName == "/Wand_Left_Down"){
       if (mode == Mode::SLICES){
@@ -294,6 +302,9 @@ public:
       }
       else if (mode == Mode::PATHSIZE){
         _pm->pathlineMax -= 0.04; 
+      }
+      else if (mode == Mode::SIMILARITY){
+        _similarityGo = true;
       }
       else{
         ac.stepBackward();
@@ -478,7 +489,10 @@ public:
         if (_placeClusterSeed){
           _pm->ShowCluster(glm::vec3(modelPos), time);
         }
-
+        if (_similarityGo){
+          _similarityGo = false;
+          _pm->FindClosestPoints(glm::vec3(modelPos), time, (int) _similarityCount);
+        }
         
         
         
@@ -524,6 +538,8 @@ protected:
   Slide _slide;
   glm::mat4 _slideMat;
   bool _movingSlide = false;
+  double _similarityCount = 50;
+  bool _similarityGo = false;
 };
 
 

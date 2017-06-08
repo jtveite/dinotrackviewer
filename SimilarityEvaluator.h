@@ -1,4 +1,4 @@
-#include "VRPoint.h"
+#include "vrpoint.h"
 #include "pointmanager.h"
 
 #include <vector>
