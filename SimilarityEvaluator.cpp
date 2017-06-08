@@ -11,6 +11,16 @@ struct pair_second_comp{
   }
 };
 
+std::vector<int> SimilarityEvaluator::getMostSimilarPathsFromSimilarities(std::vector<std::pair<int, double>> similarities, int numPaths){
+  std::nth_element(similarities.begin(), similarities.begin() + numPaths, similarities.end(), pair_second_comp());
+  std::vector<int> ret(numPaths);
+  for (int i = 0; i < numPaths; i++){
+    ret[i] = similarities[i].first;
+  }
+  return ret;
+
+}
+
 std::vector<int> SimilarityEvaluator::getMostSimilarPaths(PointManager* pm, int targetIndex, int numPaths){
   std::vector<std::pair<int, double> > similarities = getAllPathSimilarities(pm, targetIndex); //get the set of all similarity values
   std::nth_element(similarities.begin(), similarities.begin() + numPaths, similarities.end(), pair_second_comp());
@@ -27,6 +37,9 @@ std::vector<std::pair<int, double> > SimilarityEvaluator::getAllPathSimilarities
   std::vector<std::pair<int, double> > values; 
   for (int i = 0; i < numPoints; i++){
     if( i == targetIndex){
+      continue;
+    }
+    if (pm->points[i].totalPathLength() < threshold){
       continue;
     }
     values.push_back(std::make_pair(i, evaluateSimilarity(pm->points[targetIndex], pm->points[i]))); 

@@ -16,7 +16,8 @@ class SimilarityEvaluator{
 public:
   virtual double evaluateSimilarity(VRPoint& a, VRPoint& b) = 0;
   virtual std::vector<int> getMostSimilarPaths(PointManager* pm, int targetIndex, int numPaths = 25);
+  virtual std::vector<int> getMostSimilarPathsFromSimilarities(std::vector<std::pair<int, double>> similarities, int numPaths = 25);
   virtual std::vector<std::pair<int, double>> getAllPathSimilarities(PointManager* pm, int targetIndex);
 
-
+  float threshold = 0.007;
 };

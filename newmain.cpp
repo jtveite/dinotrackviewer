@@ -203,6 +203,7 @@ public:
       _pm->ResetPrediction();
       _pm->clustering = false;
       _pm->currentCluster = -1;
+      _pm->colorBySimilarity = !_pm->colorBySimilarity;
     }
     else if (eventName == "/Kbd4_Down" || eventName == "/Mouse_Right_Down"){
       mode = Mode::SIMILARITY;
@@ -210,6 +211,10 @@ public:
       //_pm->ClearPathlines();
       //mode = Mode::SLICES;
       //_pm->SetFilter(_slicer);
+    }
+    else if (eventName == "/Kbd5_Down" || eventName == "/Mouse_Left_Click_Down"){
+      _pm->SetShaders();
+
     }
 
     else if (eventName == "/MouseBtnLeft_Down" || eventName == "/Wand_Bottom_Trigger_Down"){
