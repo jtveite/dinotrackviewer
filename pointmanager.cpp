@@ -407,10 +407,11 @@ void PointManager::FindClosestPoints(glm::vec3 pos, int t, int numPoints){
   
 
 
-  std::vector<int> bestPaths = simEval->getMostSimilarPathsFromSimilarities(pathsims);
+  std::vector<int> bestPaths = simEval->getMostSimilarPathsFromSimilarities(pathsims, numPoints);
   for (auto idx : bestPaths){
     AddPathline(points[idx]);
   }
+  AddPathline(points[bestIdx]);
 
   printf("Time to find similarities: %f seconds.\n", ((float)(clock() - startTime) / CLOCKS_PER_SEC));
   std::cout << std::endl;
