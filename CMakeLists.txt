@@ -96,8 +96,9 @@ if(BUILD_DOCUMENTATION)
 endif()
 
 file(COPY ${resource_files} DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY data/active-dataset.out DESTINATION ${CMAKE_BINARY_DIR}/bin)
 
-set_source_files_properties(vertex.h GLUtil.hPROPERTIES HEADER_FILE_ONLY TRUE)
+set_source_files_properties(vertex.h GLUtil.h PROPERTIES HEADER_FILE_ONLY TRUE)
 
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
