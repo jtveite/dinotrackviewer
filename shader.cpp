@@ -173,6 +173,7 @@ void MyShader::checkError(GLint sid){
     std::cout << "Error compiling shader " << sid << ": " << std::endl;
     if(maxLength > 0){
       printf("%s\n", &errorLog[0]);
+      std::cout << &errorLog[0] << std::endl;
     }
     else{
       printf("Couldn't get error properly.\n"); 

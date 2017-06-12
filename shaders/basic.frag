@@ -11,6 +11,16 @@ uniform sampler2D clusterMap;
 uniform float numClusters = 0;
 uniform float maxDistance = -1;
 
+float gamma = 2.2;
+
+vec4 togamma(vec4 a){
+  return pow(a, vec4(gamma));
+}
+
+vec4 fromgamma(vec4 a){
+  return pow(a, vec4(1./gamma));
+}
+
 void main()
 {
   vec3 lightDir = normalize(vec3(0, 0.0, 1));
@@ -20,9 +30,10 @@ void main()
   vec4 baseColor;// = texture(colorMap, gsColor);
 
   if (maxDistance > 0){
-    vec4 maxColor = vec4( 0 , 0 , .2, 1);
-    vec4 minColor = vec4( .9, 0 , 0 , 1);
-    vec4 medColor = vec4( 0 , 0 , .6, 1);
+    vec4 maxColor = togamma(vec4( 0 , 0 , .8, 1));
+    vec4 minColor = togamma(vec4( 0 , .9, 0 , 1));
+    vec4 medColor = togamma(vec4( 1 , 0 , .3, 1));
+    float midpoint = 0.3;
     float ratio = gsSimilarity / maxDistance;
     //probably do other things to the ratio
     /*ratio = 1 - ratio;
@@ -31,14 +42,15 @@ void main()
     if (ratio < 0){
       baseColor = vec4(.2, .2, .2, 1);
     }
-    else if (ratio < 0.5){
-      ratio *= 2; // restore scaling to [0,1]
+    else if (ratio < midpoint){
+      ratio /= midpoint; // restore scaling to [0,1]
       baseColor = minColor * (1 - ratio) + medColor * ratio;
     }
     else{
-      ratio = ratio * 2 - 1;
+      ratio = (ratio - midpoint) / (1 - midpoint);
       baseColor = medColor * (1 - ratio) + maxColor * ratio;
     }
+    baseColor = fromgamma(baseColor);
   }
   else if (numClusters > 0){
     
