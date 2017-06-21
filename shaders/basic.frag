@@ -10,6 +10,7 @@ uniform sampler2D colorMap;
 uniform sampler2D clusterMap;
 uniform float numClusters = 0;
 uniform float maxDistance = -1;
+uniform float clusterDistance = -1;
 
 float gamma = 2.2;
 
@@ -30,10 +31,13 @@ void main()
   vec4 baseColor;// = texture(colorMap, gsColor);
 
   if (maxDistance > 0){
-    vec4 maxColor = togamma(vec4( 0 , 0 , .8, 1));
     vec4 minColor = togamma(vec4( 0 , .9, 0 , 1));
-    vec4 medColor = togamma(vec4( 1 , 0 , .3, 1));
+    vec4 medColor = togamma(vec4( 1 , 0 , 0 , 1));
+    vec4 maxColor = togamma(vec4( 0 , 0 , .8, 1));
     float midpoint = 0.3;
+    if (clusterDistance > 0){
+      midpoint = (clusterDistance / maxDistance);
+    }
     float ratio = gsSimilarity / maxDistance;
     //probably do other things to the ratio
     /*ratio = 1 - ratio;

@@ -72,7 +72,7 @@ public:
      */
     void SetShaders();
     void AddPathline(glm::vec3 pos, int time);
-    void AddPathline(VRPoint& point);
+    void AddPathline(VRPoint& point, float fixedY = -1.0);
     void ClearPathlines();
     void TempPathline(glm::vec3 pos, int time);
     void SetFilter(Filter* f);
@@ -85,7 +85,11 @@ public:
     void ResetPrediction();
 
     void FindClosestPoints(glm::vec3 pos, int t, int numPoints = 50);///< Finds the numPoints closest points to the selected one using simEval as the metric
+    void ExpandClosestPoints(int numPoints); ///<Like FindClosestPoints, but works from the last seed point chosen and just changes the number shown. Also clears existing pathlines to make this doable. 
+    std::vector<std::pair<int, double> > pathSimilarities;
+    std::vector<float> similarities;
     SimilarityEvaluator* simEval;
+    bool similarityReset = true;
 
     bool clustering = true;
     int currentCluster = -1;
@@ -113,6 +117,7 @@ public:
     float pathlineMax = 1.0;
     bool colorByCluster = false;
     bool colorBySimilarity = false;
+    bool colorPathsBySimilarity = false;
 private:
     void DrawBoxes();
     void DrawPoints(int time, glm::mat4 mvp);
@@ -155,6 +160,7 @@ private:
 
     GLuint particleSimilarityBuffer;
     double maxSimilarityDistance;
+    double midSimilarityDistance;
 
     GLuint particleClusterBuffer;
     int clusterVertCount;

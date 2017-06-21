@@ -212,9 +212,12 @@ public:
       //mode = Mode::SLICES;
       //_pm->SetFilter(_slicer);
     }
-    else if (eventName == "/Kbd5_Down" || eventName == "/Mouse_Left_Click_Down"){
+    else if (eventName == "/Kbd5_Down"){//instacrashes :( || eventName == "/Mouse_Left_Click_Down"){
       _pm->SetShaders();
 
+    }
+    else if (eventName == "/Kbd6_Down" || eventName == "/Mouse_Right_Click_Down"){
+      _pm->colorPathsBySimilarity = !_pm->colorPathsBySimilarity;
     }
 
     else if (eventName == "/MouseBtnLeft_Down" || eventName == "/Wand_Bottom_Trigger_Down"){
@@ -261,7 +264,8 @@ public:
         _pm->pathlineMin -= 0.04; 
       }
       if (mode == Mode::SIMILARITY){
-        _similarityCount /= 1.5;
+        _similarityCount /= 1.2;
+        _pm->ExpandClosestPoints(_similarityCount);
       }
     }
     else if (eventName == "/KbdUp_Down" || eventName == "/Wand_Up_Down"){
@@ -294,7 +298,8 @@ public:
         _pm->pathlineMin += 0.04; 
       }
       if (mode == Mode::SIMILARITY){
-        _similarityCount *= 1.5;
+        _similarityCount *= 1.2;
+        _pm->ExpandClosestPoints(_similarityCount);
       }
     }
     else if (eventName == "/KbdLeft_Down" || eventName == "/Wand_Left_Down"){
