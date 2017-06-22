@@ -203,7 +203,7 @@ public:
       _pm->ResetPrediction();
       _pm->clustering = false;
       _pm->currentCluster = -1;
-      _pm->colorBySimilarity = !_pm->colorBySimilarity;
+      _pm->colorBySimilarity = false;
     }
     else if (eventName == "/Kbd4_Down" || eventName == "/Mouse_Right_Down"){
       mode = Mode::SIMILARITY;
