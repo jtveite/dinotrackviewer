@@ -159,7 +159,7 @@ void PointManager::SetShaders(){
     pointShader->checkErrors();
     pointShader->loadTexture("colorMap", "colormap.jpg");
     pointShader->loadTexture("clusterMap", "clusters.png");
-    lineShader = new MyShader("shaders/litpath.vert", "shaders/litpath.geom",  "shaders/litpath.frag");
+    lineShader = new MyShader("shaders/litpath.vert",  "shaders/litpath.frag");
     lineShader->checkErrors();
     lineShader->loadTexture("pathMap", "pathmap.jpg");
 
@@ -591,16 +591,17 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) (sizeof(glm::vec3) + sizeof(glm::vec2)));
     glCheckError();
     
     
     if (colorPathsBySimilarity){
-      glBindBuffer(GL_ARRAY_BUFFER, particleSimilarityBuffer);
+     /* glBindBuffer(GL_ARRAY_BUFFER, particleSimilarityBuffer);
       glEnableVertexAttribArray(3);
-      glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
+      glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 0, 0);*/
       lineShader->setFloat("maxDistance", maxSimilarityDistance);
       lineShader->setFloat("clusterDistance", midSimilarityDistance);
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      //glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     else{
       lineShader->setFloat("maxDistance", -1.0);
@@ -624,6 +625,7 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
       glEnableVertexAttribArray(1);
       glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
       glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
+      glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) (sizeof(glm::vec3) + sizeof(glm::vec2)));
 
 
       glDrawArrays(GL_TRIANGLES, 0, tempPath.size());

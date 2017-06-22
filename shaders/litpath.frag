@@ -1,8 +1,8 @@
 #version 330
 
 out vec4 color;
-in vec2 gsColor;
-in vec3 normal;
+in vec2 vertexColor;
+in vec3 vertexNormal;
 uniform sampler2D pathMap;
 uniform float clusterId = -1;
 uniform float minCutoff = 0.0;
@@ -25,23 +25,23 @@ vec4 fromgamma(vec4 a){
 
 void main()
 {
-  if ( gsColor.x < minCutoff || gsColor.x > maxCutoff){
+  if ( vertexColor.x < minCutoff || vertexColor.x > maxCutoff){
     color = vec4(0.0);
     return;
   }
-  color = texture(pathMap, vec2(gsColor.x, 0.5));
-
+  color = texture(pathMap, vec2(vertexColor.x, 0.5));
 
 
   if (maxDistance > 0){
     vec4 minColor = togamma(vec4( 0 , .9, 0 , 1));
-    vec4 medColor = togamma(vec4( 1 , 0 , 0 , 1));
-    vec4 maxColor = togamma(vec4( 0 , 0 , .8, 1));
+    vec4 medColor = togamma(vec4( 1 , .2, .2, 1));
+    vec4 maxColor = togamma(vec4( .4 , .4 , 1, 1));
+    medColor = togamma(vec4( .4 , .4 , 1, 1));
     float midpoint = 0.3;
     if (clusterDistance > 0){
       midpoint = (clusterDistance / maxDistance);
     }
-    float ratio = gsColor.y / maxDistance;
+    float ratio = vertexColor.y / maxDistance;
     //probably do other things to the ratio
     /*ratio = 1 - ratio;
     ratio *= ratio; //bring closer to 1?
@@ -59,12 +59,14 @@ void main()
     }
     color = fromgamma(color);
   }
-  vec3 lightDir = normalize(-vec3(0, 0.0, 1));
-  float lambertian = max(dot(lightDir, normal.xyz), 0.0);
+  vec3 lightDir = normalize(vec3(0, 0.0, 1));
+  vec3 n = normalize(vertexNormal);
+  float lambertian = max(dot(lightDir, n), 0.0);
+
   float ambient = 0.3;
   float diffuse = 1. - ambient;
   
 
   color = color * (ambient + diffuse * lambertian);
-  
+
 }

@@ -32,8 +32,8 @@ void main()
 
   if (maxDistance > 0){
     vec4 minColor = togamma(vec4( 0 , .9, 0 , 1));
-    vec4 medColor = togamma(vec4( 1 , 0 , 0 , 1));
-    vec4 maxColor = togamma(vec4( 0 , 0 , .8, 1));
+    vec4 medColor = togamma(vec4( 1 , .2, .2, 1));
+    vec4 maxColor = togamma(vec4( .4, .4,  1, 1));
     float midpoint = 0.3;
     if (clusterDistance > 0){
       midpoint = (clusterDistance / maxDistance);
