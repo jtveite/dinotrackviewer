@@ -36,7 +36,7 @@ void main()
     vec4 minColor = togamma(vec4( 0 , .9, 0 , 1));
     vec4 medColor = togamma(vec4( 1 , .2, .2, 1));
     vec4 maxColor = togamma(vec4( .4 , .4 , 1, 1));
-    medColor = togamma(vec4( .4 , .4 , 1, 1));
+    //medColor = togamma(vec4( .4 , .4 , 1, 1));
     float midpoint = 0.3;
     if (clusterDistance > 0){
       midpoint = (clusterDistance / maxDistance);
@@ -48,6 +48,9 @@ void main()
     ratio = 1 - ratio;*/
     if (ratio < 0){
       color = vec4(.2, .2, .2, 1);
+    }
+    else if (ratio == 0.0){
+      color = vec4(1.);
     }
     else if (ratio < midpoint){
       ratio /= midpoint; // restore scaling to [0,1]

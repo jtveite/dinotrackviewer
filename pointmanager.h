@@ -90,6 +90,7 @@ public:
     std::vector<float> similarities;
     SimilarityEvaluator* simEval;
     bool similarityReset = true;
+    int similaritySeedPoint;
 
     bool clustering = true;
     int currentCluster = -1;

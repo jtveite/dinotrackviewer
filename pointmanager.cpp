@@ -397,6 +397,7 @@ void PointManager::SearchForSeeds(int target_count){
 void PointManager::FindClosestPoints(glm::vec3 pos, int t, int numPoints){
   clock_t startTime = clock();
   int bestIdx = FindPathline(pos, t);
+  similaritySeedPoint = bestIdx;
   pathSimilarities = simEval->getAllPathSimilarities(this, bestIdx);//Keep this around and find a way to recognize it to interactively increase # paths shown.
   std::vector<float> sims(points.size(), -1);
   similarities = sims;
@@ -441,6 +442,7 @@ void PointManager::ExpandClosestPoints(int numPoints){
   for (auto idx : bestPaths){
     AddPathline(points[idx], similarities[idx]);
   }
+  AddPathline(points[similaritySeedPoint], 0.0);
   midSimilarityDistance = similarities[bestPaths[bestPaths.size() - 1]];
   std::cout << "Edge of cluster: " << midSimilarityDistance<< std::endl;
 
