@@ -512,7 +512,7 @@ public:
           _fmv.Draw(time, MVP);
         }
         glCheckError();
-        _slide.Draw(P * V * slideM);
+        //_slide.Draw(P * V * slideM);
         glCheckError();
 		}
 	}
