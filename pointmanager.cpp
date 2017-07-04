@@ -394,6 +394,12 @@ void PointManager::SearchForSeeds(int target_count){
   seedSearches++;
 }
 
+struct pair_second_comp_desc{
+  bool operator()(std::pair<int, double> a, std::pair<int, double> b){
+    return b.second < a.second;
+  }
+};
+
 void PointManager::FindClosestPoints(glm::vec3 pos, int t, int numPoints){
   clock_t startTime = clock();
   int bestIdx = FindPathline(pos, t);
@@ -408,6 +414,12 @@ void PointManager::FindClosestPoints(glm::vec3 pos, int t, int numPoints){
     maxSimilarityDistance = std::max(maxSimilarityDistance, pair.second);
   }
   printf("Farthest Point: %f.\n", maxSimilarityDistance);
+
+  auto simCopy = pathSimilarities;
+  int maxElementCount = simCopy.size() * 0.05;
+  std::nth_element(simCopy.begin(), simCopy.begin() + maxElementCount, simCopy.end(), pair_second_comp_desc());
+  maxSimilarityDistance = simCopy[maxElementCount].second; 
+  printf("Real Farthest Point: %f.\n", maxSimilarityDistance);
   
   glBindBuffer(GL_ARRAY_BUFFER, particleSimilarityBuffer);
   int bufferSize = similarities.size() * sizeof(float);
@@ -432,7 +444,7 @@ void PointManager::FindClosestPoints(glm::vec3 pos, int t, int numPoints){
 }
 
 void PointManager::ExpandClosestPoints(int numPoints){
-  if (similarityReset){
+  if (similarityReset || numPoints < 1){
     printf("BREAKING EARLY FROM EXPAND CLOSEST POINTS BECAUSE NO POINTS TO EXPAND.\n");
     return;
   }
