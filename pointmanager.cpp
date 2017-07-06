@@ -138,6 +138,12 @@ void PointManager::SetupDraw(bool allPaths){
     glGenBuffers(1, &particleSimilarityBuffer);
     
     SetShaders();
+    
+    glGenBuffers(1, &surfaceIndexBuffer);
+    glGenVertexArrays(1, &vao);
+
+
+
 
     if (allPaths){
       for(int i = 0; i < points.size(); i++){
@@ -162,6 +168,9 @@ void PointManager::SetShaders(){
     lineShader = new MyShader("shaders/litpath.vert",  "shaders/litpath.frag");
     lineShader->checkErrors();
     lineShader->loadTexture("pathMap", "pathmap.jpg");
+    surfaceShader = new MyShader("shaders/surface.vert","shaders/surface.geom", "shaders/surface.frag");
+    surfaceShader->checkErrors();
+    surfaceShader->loadTexture("colorMap", "surfacemap.jpg");
 
 }
 
@@ -180,6 +189,47 @@ void PointManager::ReadPathlines(std::string fileName){
   }
 
 } 
+
+void PointManager::ReadSurface(std::string fileName){
+  clock_t startTime = clock();
+  std::fstream file;
+  file.open(fileName, std::ios::in);
+  int a,b,c, ai, bi, ci;//a,b,c are ids, ai,bi,ci are indices
+  while (file >> a >> b >> c){
+    ai = -1;
+    bi = -1;
+    ci = -1;
+    for(int i = 0; i < points.size(); i++){
+      if (points[i].m_id == a){
+        ai = i;
+      }
+      if (points[i].m_id == b){
+        bi = i;
+      }
+      if (points[i].m_id == c){
+        ci = i;
+      }
+    }
+    if ( (ai != -1) && (bi != -1) && (ci != -1)){
+        surfaceIndices.push_back(ai);
+        surfaceIndices.push_back(bi);
+        surfaceIndices.push_back(ci);
+    }
+  }
+
+
+
+
+  printf("Surface read, %d points,  processing...\n", surfaceIndices.size());
+  std::cout << std::endl;
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, surfaceIndexBuffer);
+  int bufferSize = surfaceIndices.size() * sizeof(int);
+  int* bufferData = surfaceIndices.data();
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferSize, bufferData, GL_STATIC_DRAW);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  printf("Found %d points.\n", surfaceIndices.size());
+  printf("Time of reading surface: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
+}
 
 int PointManager::getLength(){
   return timeSteps;
@@ -500,7 +550,7 @@ void PointManager::DrawBoxes(){
   }*/
 }
 
-void PointManager::DrawPoints(int time, glm::mat4 mvp){
+void PointManager::DrawPoints(int time, glm::mat4 mvp, glm::vec4 cuttingPlane){
     int err;
     glCheckError();
     //Bind shader and set args
@@ -508,7 +558,10 @@ void PointManager::DrawPoints(int time, glm::mat4 mvp){
     glCheckError();
     pointShader->setMatrix4("mvp", mvp);
     pointShader->setFloat("rad", pointSize);
+    pointShader->setVector4("cuttingPlane", cuttingPlane);
     glCheckError();
+
+
     //Bind and resend buffer data
     int numElements;
     if (useSeparateBuffers){
@@ -573,6 +626,32 @@ void PointManager::DrawPoints(int time, glm::mat4 mvp){
 
     //Unbind shader
     pointShader->unbindShader();
+}
+
+void PointManager::DrawSurface(int time, glm::mat4 mvp){
+    surfaceShader->bindShader();
+    surfaceShader->setMatrix4("mvp", mvp);
+
+    int numElements = surfaceIndices.size();
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);//Should have been set in DrawPoints
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, surfaceIndexBuffer);//Should be set earlier and never change since we're indexing to the same point
+    //TODO: Fix this so that it works nicely with filters
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glDisable(GL_CULL_FACE);
+
+    glDrawElements(GL_TRIANGLES, numElements, GL_UNSIGNED_INT, (void*) 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    surfaceShader->unbindShader();
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glCheckError();
 }
 
  
@@ -773,7 +852,7 @@ void PointManager::DrawAllClusters(int time, glm::mat4 mvp){
 }
 
 
-void PointManager::Draw(int time, glm::mat4 mvp){
+void PointManager::Draw(int time, glm::mat4 mvp, glm::vec4 cuttingPlane){
     numFramesSeen++;
     clock_t startTime = clock();
     int err;
@@ -781,7 +860,7 @@ void PointManager::Draw(int time, glm::mat4 mvp){
     DrawBoxes();
     //printf("Time after setting points: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
     glCheckError();
-    DrawPoints(time, mvp);
+    DrawPoints(time, mvp, cuttingPlane);
     glCheckError();
     DrawPaths(time, mvp);
     glCheckError();
@@ -790,6 +869,10 @@ void PointManager::Draw(int time, glm::mat4 mvp){
     if (drawAllClusters){
       DrawAllClusters(time, mvp);
     }
-
+    glCheckError();
+    if (showSurface){
+      DrawSurface(time, mvp);
+    }
+    glCheckError();
     //printf("Time end of frame: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
    }

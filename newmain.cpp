@@ -40,6 +40,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/euler_angles.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "glm/ext.hpp"
 
 
 using namespace MinVR;
@@ -406,6 +407,7 @@ public:
       _pm->SetupDraw();
       _slide.Initialize("slide.png", glm::vec3(3,-3,0), glm::vec3(0,2,0), glm::vec3(0,0,1.544));
       _fmv.ReadFiles("feet.feet");
+      _pm->ReadSurface("active.surface");
       first = false;
     }
     GLuint test;
@@ -503,11 +505,20 @@ public:
           _similarityGo = false;
           _pm->FindClosestPoints(glm::vec3(modelPos), time, (int) _similarityCount);
         }
+        glm::vec4 cuttingPlane (0.0);
+        if (_slicing){
+          glm::vec3 up = glm::vec3(_lastWandPos[1]);
+          up = glm::normalize(up);
+          glm::vec3 modelUp = glm::inverse(M) * glm::vec4(up, 0.0);
+          float offset = - glm::dot(glm::vec3(modelPos), modelUp);
+          cuttingPlane = glm::vec4(modelUp.x, modelUp.y, modelUp.z, offset);
+          std::cout << "Cutting plane: " << glm::to_string(cuttingPlane) << std::endl;
+        }
         
         
         
         glCheckError();
-        _pm->Draw(time, MVP );
+        _pm->Draw(time, MVP, cuttingPlane );
         if (showFoot){
           _fmv.Draw(time, MVP);
         }
@@ -550,6 +561,7 @@ protected:
   bool _movingSlide = false;
   double _similarityCount = 50;
   bool _similarityGo = false;
+  bool _slicing = false;
 };
 
 

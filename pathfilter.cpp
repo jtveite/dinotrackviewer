@@ -34,6 +34,25 @@ void PathFilter::runFilter()
 
 }
 
+bool checkDistanceTotal(VRPoint& p, VRPoint& q, double gap){
+  return p.withinDistance(q, gap);
+}
+
+
+bool checkDistanceTime(VRPoint& p, VRPoint& q, double gap){
+  int length = std::min(p.positions.size(), q.positions.size());
+  for(int i = 0; i < length; i++){
+    if (glm::distance(p.positions[i],  q.positions[i]) < gap){
+      return true;
+    }
+  }
+  return false;
+}
+
+//Checks if two paths are within a given distance of each other
+bool checkDistance(VRPoint& p, VRPoint& q, double gap){
+  return checkDistanceTime(p, q, gap);
+}
 
 void PathFilter::filterPoisson(int number, double gap, double requiredLength)
 {

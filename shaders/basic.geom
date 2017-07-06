@@ -16,6 +16,9 @@ uniform mat4 mvp;
 uniform float rad;
 uniform float numClusters;
 uniform float maxDistance = -1;
+
+uniform vec4 cuttingPlane; //represented as ax + by + cz + d = 0, values >0 culled
+
 //float rad = 0.002;
 
 vec4 get_vertex(float theta, float phi){
@@ -40,12 +43,22 @@ void main ()
 
 
   float radius = rad;
+  //Make particles smaller if they are nto clustered
   if (numClusters > 0 && gsCluster < -0.5){
     radius *= 0.5;
   }
+  //Make particles smaller if their path is not long enough to compute similarity
   if (maxDistance > 0 && gsSimilarity < -0.5){
     radius *= 0.3;
   }
+
+  //Make particles smaller if they are outside of the cutting plane.
+  float planeLocation = (pos.x * cuttingPlane.x + pos.y * cuttingPlane.y + pos.z * cuttingPlane.z + cuttingPlane.w);
+  if (planeLocation > 0.0001){
+    radius = radius * .3;
+  }
+
+
 
   for (float up = 0; up <= pi; up += pgap){
     float phi = up;
