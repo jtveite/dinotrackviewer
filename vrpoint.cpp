@@ -88,6 +88,9 @@ float VRPoint::GetDistance(int time, glm::vec3 point)
   return glm::length(point - positions[time]);
 }
 
+glm::vec3 getVertexOffset(glm::vec3 right, glm::vec3 up, float theta){
+  return float(cos(theta)) * up + float(sin(theta)) * right;
+}
 
 glm::vec3 getVertexPosition(glm::vec3 right, glm::vec3 up, glm::vec3 base, float radius, float theta){
   return base + radius * float(cos(theta)) * up + radius * float(sin(theta)) * right;
@@ -99,7 +102,7 @@ glm::vec2 VRPoint::getColor(int position){
   return glm::vec2(pos, 0.5);
 }
 
-std::vector<Vertex> VRPoint::getPathlineVerts(bool useHardX, float hardXPos)
+std::vector<Vertex> VRPoint::getPathlineVerts(bool useHardY, float hardYPos)
 {
   double radius = 0.00008;
   std::vector<Vertex> v;
@@ -112,11 +115,11 @@ std::vector<Vertex> VRPoint::getPathlineVerts(bool useHardX, float hardXPos)
     glm::vec3 right = glm::normalize(glm::cross(wup, forward));
     glm::vec3 up = glm::normalize(glm::cross(forward,right));
     glm::vec2 col = getColor(i);
-    if (useHardX){
-      col.x = hardXPos;
+    if (useHardY){
+      col.y = hardYPos;
     }
     for(int j = 0; j < steps_around; j++){
-      points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, (j * 6.28 / steps_around)), col));
+      points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, (j * 6.28 / steps_around)), col, getVertexOffset(right, up, (j * 6.28 / steps_around))));
     }
     for (int j = 0; j < steps_around - 1; j++){
       int base = steps_around * i +j;
@@ -140,11 +143,11 @@ std::vector<Vertex> VRPoint::getPathlineVerts(bool useHardX, float hardXPos)
   glm::vec3 right = glm::normalize(glm::cross(wup, forward));
   glm::vec3 up = glm::normalize(glm::cross(forward,right));
   glm::vec2 col = getColor(i);
-  if (useHardX){
-    col.x = hardXPos;
+  if (useHardY){
+    col.y = hardYPos;
   }
   for(int j = 0; j < steps_around; j++){
-    points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, j * 1.0 / steps_around), col));
+    points.push_back(Vertex(getVertexPosition(right, up, positions[i], radius, (j * 6.28 / steps_around)), col, getVertexOffset(right, up, (j * 6.28 / steps_around))));
   }
     
     std::vector<int> triIndices;

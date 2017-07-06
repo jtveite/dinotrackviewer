@@ -26,6 +26,7 @@
 #endif
 
 #include "slide.h"
+#include "cursor.h"
 #include "vrpoint.h"
 #include "vertex.h"
 #include "filter.h"
@@ -176,6 +177,7 @@ public:
       if (_movingSlide){
         _slideMat = wandPos / _lastWandPos * _slideMat;
       }
+      _cursorMat = wandPos / _lastWandPos * _cursorMat;
       _lastWandPos = wandPos;
     }
 
@@ -203,7 +205,7 @@ public:
       _pm->ResetPrediction();
       _pm->clustering = false;
       _pm->currentCluster = -1;
-      _pm->colorBySimilarity = !_pm->colorBySimilarity;
+      _pm->colorBySimilarity = false;
     }
     else if (eventName == "/Kbd4_Down" || eventName == "/Mouse_Right_Down"){
       mode = Mode::SIMILARITY;
@@ -212,9 +214,12 @@ public:
       //mode = Mode::SLICES;
       //_pm->SetFilter(_slicer);
     }
-    else if (eventName == "/Kbd5_Down" || eventName == "/Mouse_Left_Click_Down"){
+    else if (eventName == "/Kbd5_Down"){//instacrashes :( || eventName == "/Mouse_Left_Click_Down"){
       _pm->SetShaders();
 
+    }
+    else if (eventName == "/Kbd6_Down" || eventName == "/Mouse_Right_Click_Down"){
+      _pm->colorPathsBySimilarity = !_pm->colorPathsBySimilarity;
     }
 
     else if (eventName == "/MouseBtnLeft_Down" || eventName == "/Wand_Bottom_Trigger_Down"){
@@ -261,7 +266,8 @@ public:
         _pm->pathlineMin -= 0.04; 
       }
       if (mode == Mode::SIMILARITY){
-        _similarityCount /= 1.5;
+        _similarityCount /= 1.2;
+        _pm->ExpandClosestPoints(_similarityCount);
       }
     }
     else if (eventName == "/KbdUp_Down" || eventName == "/Wand_Up_Down"){
@@ -294,7 +300,8 @@ public:
         _pm->pathlineMin += 0.04; 
       }
       if (mode == Mode::SIMILARITY){
-        _similarityCount *= 1.5;
+        _similarityCount *= 1.2;
+        _pm->ExpandClosestPoints(_similarityCount);
       }
     }
     else if (eventName == "/KbdLeft_Down" || eventName == "/Wand_Left_Down"){
@@ -399,6 +406,7 @@ public:
       glewExperimental = GL_TRUE;
       glewInit();
       _pm->SetupDraw();
+      _cursor.Initialize(1.0f);
       _slide.Initialize("slide.png", glm::vec3(3,-3,0), glm::vec3(0,2,0), glm::vec3(0,0,1.544));
       _fmv.ReadFiles("feet.feet");
       first = false;
@@ -469,6 +477,11 @@ public:
         //in desktop mode, +x is away from camera, +z is right, +y is up 
         //M = translate * scale;
         glm::mat4 slideM = _slideMat * M;
+        glm::mat4 cursorM = _cursorMat * M;
+//        std::cout << "cursor" << std::endl;
+//        printMat4(cursorM);
+//        std::cout << "slide" << std::endl;
+//        printMat4(slideM);
         M = _owm * M * translate * scale;
         //V = glm::transpose(V);
         MVP = P * V * M;
@@ -502,11 +515,22 @@ public:
         
         
         glCheckError();
+
         _pm->Draw(time, MVP );
         if (showFoot){
           _fmv.Draw(time, MVP);
         }
         glCheckError();
+        glm::mat4 p;
+        glm::mat4 m = P * V * cursorM;
+
+        glm::mat4 m2 = P * V * slideM;
+        std::cout << "cursor" << std::endl;
+        printMat4(m);
+        std::cout << "cursor" << std::endl;
+        printMat4(m2);
+        _cursor.Draw(m);
+//        _cursor.Draw(p);
         _slide.Draw(P * V * slideM);
         glCheckError();
 		}
@@ -541,7 +565,9 @@ protected:
   bool iterateClusters = false;
   float time;
   Slide _slide;
+  Cursor _cursor;
   glm::mat4 _slideMat;
+  glm::mat4 _cursorMat;
   bool _movingSlide = false;
   double _similarityCount = 50;
   bool _similarityGo = false;

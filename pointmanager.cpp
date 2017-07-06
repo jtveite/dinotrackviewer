@@ -108,7 +108,6 @@ void PointManager::ReadFile(std::string fileName, bool debug)
 
 void PointManager::SetupDraw(bool allPaths){
     clock_t startTime = clock();
-  
 
 
     filter = new Filter();
@@ -159,10 +158,9 @@ void PointManager::SetShaders(){
     pointShader->checkErrors();
     pointShader->loadTexture("colorMap", "colormap.jpg");
     pointShader->loadTexture("clusterMap", "clusters.png");
-    lineShader = new MyShader("shaders/litpath.vert", "shaders/litpath.geom",  "shaders/litpath.frag");
+    lineShader = new MyShader("shaders/litpath.vert",  "shaders/litpath.frag");
     lineShader->checkErrors();
     lineShader->loadTexture("pathMap", "pathmap.jpg");
-
 }
 
 void PointManager::ReadPathlines(std::string fileName){
@@ -236,10 +234,16 @@ void PointManager::AddPathline(glm::vec3 pos, int time){
   //std::cout << std::endl;
 }
 
-void PointManager::AddPathline(VRPoint& point){
+void PointManager::AddPathline(VRPoint& point, float fixedY){
   int offset = pathVertices.size();
   pathOffsets.push_back(offset);
-  std::vector<Vertex> newVerts = point.getPathlineVerts();
+  std::vector<Vertex> newVerts;
+  if (fixedY > -0.5) {
+    newVerts = point.getPathlineVerts(true, fixedY);
+  }
+  else{
+    newVerts = point.getPathlineVerts();
+  }
   pathCounts.push_back(newVerts.size());
   pathVertices.insert(pathVertices.end(), newVerts.begin(), newVerts.end());
   updatePaths = true;
@@ -250,6 +254,7 @@ void PointManager::ClearPathlines(){
   pathCounts.clear();
   pathVertices.clear();
   updatePaths = true;
+  similarityReset = true;
 }
 
 void PointManager::ReadClusters(std::string fileName){
@@ -390,11 +395,12 @@ void PointManager::SearchForSeeds(int target_count){
 void PointManager::FindClosestPoints(glm::vec3 pos, int t, int numPoints){
   clock_t startTime = clock();
   int bestIdx = FindPathline(pos, t);
-  std::vector<std::pair<int, double>> pathsims = simEval->getAllPathSimilarities(this, bestIdx);//Keep this around and find a way to recognize it to interactively increase # paths shown.
-  std::vector<float> similarities(points.size(), -1);
+  pathSimilarities = simEval->getAllPathSimilarities(this, bestIdx);//Keep this around and find a way to recognize it to interactively increase # paths shown.
+  std::vector<float> sims(points.size(), -1);
+  similarities = sims;
   //I'm sure I could find a better way to do this...
   maxSimilarityDistance = 0;
-  for (auto pair : pathsims){
+  for (auto pair : pathSimilarities){
     similarities[pair.first] = pair.second;
     maxSimilarityDistance = std::max(maxSimilarityDistance, pair.second);
   }
@@ -407,18 +413,41 @@ void PointManager::FindClosestPoints(glm::vec3 pos, int t, int numPoints){
   
 
 
-  std::vector<int> bestPaths = simEval->getMostSimilarPathsFromSimilarities(pathsims, numPoints);
+  std::vector<int> bestPaths = simEval->getMostSimilarPathsFromSimilarities(pathSimilarities, numPoints);
   for (auto idx : bestPaths){
-    AddPathline(points[idx]);
+    AddPathline(points[idx], similarities[idx]);
   }
-  AddPathline(points[bestIdx]);
+  AddPathline(points[bestIdx], 0.0);
 
-  printf("Time to find similarities: %f seconds.\n", ((float)(clock() - startTime) / CLOCKS_PER_SEC));
-  std::cout << std::endl;
+  midSimilarityDistance = similarities[bestPaths[bestPaths.size() - 1]];
+  std::cout << "Edge of cluster:" << midSimilarityDistance << std::endl;;
+
+  std::cout << "Time to find similarities: " << ((float)(clock() - startTime) / CLOCKS_PER_SEC) << " seconds. " << std::endl;
   colorBySimilarity = true;
+  colorPathsBySimilarity = true;
+  similarityReset = false;
 }
 
+void PointManager::ExpandClosestPoints(int numPoints){
+  if (similarityReset){
+    printf("BREAKING EARLY FROM EXPAND CLOSEST POINTS BECAUSE NO POINTS TO EXPAND.\n");
+    return;
+  }
+  clock_t startTime = clock();
+  ClearPathlines();
+  std::vector<int> bestPaths = simEval->getMostSimilarPathsFromSimilarities(pathSimilarities, numPoints);
+  for (auto idx : bestPaths){
+    AddPathline(points[idx], similarities[idx]);
+  }
+  midSimilarityDistance = similarities[bestPaths[bestPaths.size() - 1]];
+  std::cout << "Edge of cluster: " << midSimilarityDistance<< std::endl;
 
+  std::cout << "Time to find similarities: " << ((float)(clock() - startTime) / CLOCKS_PER_SEC) << " seconds. " << std::endl;
+  colorBySimilarity = true;
+  colorPathsBySimilarity = true;
+
+  similarityReset = false;
+}
 
 int PointManager::FindPointIndex(int pointID){
   for(int i = 0; i < points.size(); i++){
@@ -510,7 +539,12 @@ void PointManager::DrawPoints(int time, glm::mat4 mvp){
       glEnableVertexAttribArray(3);
       glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 0, 0);
       pointShader->setFloat("maxDistance", maxSimilarityDistance);
+      pointShader->setFloat("clusterDistance", midSimilarityDistance);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+    else{
+      pointShader->setFloat("maxDistance", -1.0);
+      pointShader->setFloat("clusterDistance", -1.0);
     }
 
     
@@ -555,7 +589,23 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) (sizeof(glm::vec3) + sizeof(glm::vec2)));
     glCheckError();
+    
+    
+    if (colorPathsBySimilarity){
+     /* glBindBuffer(GL_ARRAY_BUFFER, particleSimilarityBuffer);
+      glEnableVertexAttribArray(3);
+      glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 0, 0);*/
+      lineShader->setFloat("maxDistance", maxSimilarityDistance);
+      lineShader->setFloat("clusterDistance", midSimilarityDistance);
+      //glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+    else{
+      lineShader->setFloat("maxDistance", -1.0);
+      lineShader->setFloat("clusterDistance", -1.0);
+    }
+
     //Draw points
     glDrawArrays(GL_TRIANGLES,  0, bufferSize);
     glCheckError();
@@ -573,6 +623,7 @@ void PointManager::DrawPaths(int time, glm::mat4 mvp){
       glEnableVertexAttribArray(1);
       glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
       glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
+      glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) (sizeof(glm::vec3) + sizeof(glm::vec2)));
 
 
       glDrawArrays(GL_TRIANGLES, 0, tempPath.size());

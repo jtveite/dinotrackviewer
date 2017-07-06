@@ -3,10 +3,11 @@
 layout(triangles) in;
 layout(triangle_strip, max_vertices=3) out;
 in vec2 vertexColor[];
-in vec3 vertPos[];
+in vec3 vertexNormal[];
 
 out vec2 gsColor;
 out vec3 normal;
+
 
 uniform mat4 mvp;
 
@@ -24,7 +25,8 @@ void main ()
   float dmin = min(da, min(db, dc));
   float ratio = dmax / dmin;
 
-  normal  = normalize(cross(a.xyz - b.xyz, c.xyz - b.xyz));//to within a sign
+//  normal  = normalize(cross(a.xyz - b.xyz, c.xyz - b.xyz));//to within a sign
+  normal = vertexNormal[0];
 
   if (dmax > 0.01){
     //return;

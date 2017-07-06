@@ -23,7 +23,7 @@ public:
 
     bool withinDistance(VRPoint& other, double distance);
 
-    std::vector<Vertex> getPathlineVerts(bool useHardX = false, float hardXPos = 0.0);
+    std::vector<Vertex> getPathlineVerts(bool useHardY = false, float hardYPos = 0.0);
     std::vector<glm::vec3> positions;
 
     int steps();

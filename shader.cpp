@@ -32,6 +32,7 @@ void MyShader::setShaders(std::string vertName, std::string geoName, std::string
     printf("initial loading geom is %d.\n", usingGeom);
     std::string vertString = readFile(vertName);
     std::string fragString = readFile(fragName);
+    std::cout <<vertString << std::endl;
     vertShader = glCreateShader(GL_VERTEX_SHADER);
     fragShader = glCreateShader(GL_FRAGMENT_SHADER);
     const char *cs = vertString.c_str();
