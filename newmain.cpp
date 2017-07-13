@@ -488,8 +488,8 @@ public:
         MVP = P * V * M;
         glm::mat4 t = V ;
         
-         
-        glm::vec3 location = glm::vec3(_lastWandPos[3]);
+	glm::mat4 newWandPos =  glm::translate(_lastWandPos, glm::vec3(0.0f, 0.0f, -1.0f)); 
+        glm::vec3 location = glm::vec3(newWandPos[3]);
         glm::vec4 modelPos = glm::inverse(M) * glm::vec4(location, 1.0);
         _pm->TempPathline(glm::vec3(modelPos), time);
             /*printf("World space location: %f, %f, %f\n", location.x, location.y, location.z);
