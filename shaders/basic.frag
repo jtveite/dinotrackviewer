@@ -39,6 +39,7 @@ void main()
       midpoint = (clusterDistance / maxDistance);
     }
 
+
     float ratio = gsSimilarity / maxDistance;
     //probably do other things to the ratio
     /*ratio = 1 - ratio;
@@ -53,6 +54,9 @@ void main()
     }
     else{
       ratio = (ratio - midpoint) / (1 - midpoint);
+
+      ratio = min(1., ratio);
+
       baseColor = medColor * (1 - ratio) + maxColor * ratio;
     }
     baseColor = fromgamma(baseColor);

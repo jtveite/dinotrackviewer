@@ -61,12 +61,17 @@ public:
      * The file should contain a list of particle IDs on separate lines.
      */
     void ReadPathlines(std::string fileName);
+
+
+
 	/** 
      * Draws everything to be drawn on a given frame.
 	 * @param time The frame to be drawn.
 	 * @param mvp the Model-View-Projection matrix to use to draw.
 	 */
-    void Draw(int time, glm::mat4 mvp);
+
+    void Draw(int time, glm::mat4 mvp, glm::vec4 cuttingPlane = glm::vec4(0.));
+
     /**
      * Initializes (or rereads) the shaders from disk.
      */
@@ -75,10 +80,14 @@ public:
     void AddPathline(VRPoint& point, float fixedY = -1.0);
     void ClearPathlines();
     void TempPathline(glm::vec3 pos, int time);
+    void ReadSurface(std::string fileName);
+
+
     void SetFilter(Filter* f);
     float pointSize = 0.0004;
     int getLength();
     std::vector<VRPoint> points;
+    bool showSurface = true;
 
     void AddSeedPoint(glm::vec3 pos, int time);
     void SearchForSeeds(int target_count = 10);
@@ -90,6 +99,9 @@ public:
     std::vector<float> similarities;
     SimilarityEvaluator* simEval;
     bool similarityReset = true;
+
+    int similaritySeedPoint;
+
 
     bool clustering = true;
     int currentCluster = -1;
@@ -121,15 +133,17 @@ public:
 
 private:
     void DrawBoxes();
-    void DrawPoints(int time, glm::mat4 mvp);
+    void DrawPoints(int time, glm::mat4 mvp, glm::vec4 cuttingPlane);
     void DrawPaths(int time, glm::mat4 mvp);
     void DrawClusters(int time, glm::mat4 mvp);
     void DrawAllClusters(int time, glm::mat4 mvp);
     void DoClusterBuffers();
+    void DrawSurface(int time, glm::mat4 mvp);
     
   
     int FindPointIndex(int pointID);
-
+    
+    
     //Returns the index of the pathline closest to the given point
     int FindPathline(glm::vec3 pos, int time, float min = 10000.f);
 
@@ -141,7 +155,8 @@ private:
     int numFramesSeen;
 
     int timeSteps;
-    
+   
+    std::vector<int> surfaceIndices;
     std::vector<int> pathOffsets;
     std::vector<int> pathCounts;
     std::vector<Vertex> pathVertices;
@@ -165,13 +180,14 @@ private:
 
     GLuint particleClusterBuffer;
     int clusterVertCount;
-    bool useSeparateBuffers = true;
+    bool useSeparateBuffers = false;
     GLuint* pointBuffers;
     GLuint vao;
 
     MyShader* pointShader;
     MyShader* lineShader;
-
+    MyShader* surfaceShader;
+    GLuint surfaceIndexBuffer;
     std::vector< std::vector<Vertex> > pointLocations;
 
     glm::vec3 minV;
