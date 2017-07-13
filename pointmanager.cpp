@@ -108,7 +108,6 @@ void PointManager::ReadFile(std::string fileName, bool debug)
 
 void PointManager::SetupDraw(bool allPaths){
     clock_t startTime = clock();
-  
 
 
     filter = new Filter();
@@ -138,6 +137,7 @@ void PointManager::SetupDraw(bool allPaths){
     glGenBuffers(1, &particleSimilarityBuffer);
     
     SetShaders();
+
     
     glGenBuffers(1, &surfaceIndexBuffer);
     glGenVertexArrays(1, &vao);
@@ -168,6 +168,7 @@ void PointManager::SetShaders(){
     lineShader = new MyShader("shaders/litpath.vert",  "shaders/litpath.frag");
     lineShader->checkErrors();
     lineShader->loadTexture("pathMap", "pathmap.jpg");
+
     surfaceShader = new MyShader("shaders/surface.vert","shaders/surface.geom", "shaders/surface.frag");
     surfaceShader->checkErrors();
     surfaceShader->loadTexture("colorMap", "surfacemap.jpg");
@@ -465,6 +466,7 @@ void PointManager::FindClosestPoints(glm::vec3 pos, int t, int numPoints){
   }
   printf("Farthest Point: %f.\n", maxSimilarityDistance);
 
+
   auto simCopy = pathSimilarities;
   int maxElementCount = simCopy.size() * 0.05;
   std::nth_element(simCopy.begin(), simCopy.begin() + maxElementCount, simCopy.end(), pair_second_comp_desc());
@@ -494,6 +496,7 @@ void PointManager::FindClosestPoints(glm::vec3 pos, int t, int numPoints){
 }
 
 void PointManager::ExpandClosestPoints(int numPoints){
+
   if (similarityReset || numPoints < 1){
     printf("BREAKING EARLY FROM EXPAND CLOSEST POINTS BECAUSE NO POINTS TO EXPAND.\n");
     return;
@@ -504,6 +507,7 @@ void PointManager::ExpandClosestPoints(int numPoints){
   for (auto idx : bestPaths){
     AddPathline(points[idx], similarities[idx]);
   }
+
   AddPathline(points[similaritySeedPoint], 0.0);
   midSimilarityDistance = similarities[bestPaths[bestPaths.size() - 1]];
   std::cout << "Edge of cluster: " << midSimilarityDistance<< std::endl;

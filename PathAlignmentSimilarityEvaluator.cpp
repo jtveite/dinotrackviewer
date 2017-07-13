@@ -14,6 +14,7 @@ void printMat3(glm::mat3 m){
 
 }
 
+
 #define TIMING
 #define PRINT_DEBUG
 #ifdef TIMING

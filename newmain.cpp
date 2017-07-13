@@ -26,6 +26,7 @@
 #endif
 
 #include "slide.h"
+#include "cursor.h"
 #include "vrpoint.h"
 #include "vertex.h"
 #include "filter.h"
@@ -34,7 +35,9 @@
 #include "footmeshviewer.h"
 #include "webupdatereader.h"
 #include "PathAlignmentSimilarityEvaluator.h"
+
 #include "Config.h"
+
 //#include "GLUtil.h"
 
 #include "glm/glm.hpp"
@@ -188,6 +191,8 @@ public:
       if (_movingSlide){
         _slideMat = wandPos / _lastWandPos * _slideMat;
       }
+      //  _cursorMat = wandPos / _lastWandPos * _cursorMat;
+      _cursorMat = wandPos;
       _lastWandPos = wandPos;
     }
 
@@ -416,6 +421,8 @@ public:
       glewExperimental = GL_TRUE;
       glewInit();
       _pm->SetupDraw();
+      _cursor.Initialize(1.0f);
+
       std::string slideFile = _config->GetValue("Slide");
       if (slideFile != ""){
         _slide.Initialize(slideFile, glm::vec3(3,-3,0), glm::vec3(0,2,0), glm::vec3(0,0,1.544));
@@ -496,13 +503,18 @@ public:
         //in desktop mode, +x is away from camera, +z is right, +y is up 
         //M = translate * scale;
         glm::mat4 slideM = _slideMat * M;
+        glm::mat4 cursorM = _cursorMat;
+//        std::cout << "cursor" << std::endl;
+//        printMat4(cursorM);
+//        std::cout << "slide" << std::endl;
+//        printMat4(slideM);
         M = _owm * M * translate * scale;
         //V = glm::transpose(V);
         MVP = P * V * M;
         glm::mat4 t = V ;
         
-         
-        glm::vec3 location = glm::vec3(_lastWandPos[3]);
+	glm::mat4 newWandPos =  glm::translate(_lastWandPos, glm::vec3(0.0f, 0.0f, -1.0f)); 
+        glm::vec3 location = glm::vec3(newWandPos[3]);
         glm::vec4 modelPos = glm::inverse(M) * glm::vec4(location, 1.0);
         _pm->TempPathline(glm::vec3(modelPos), time);
             /*printf("World space location: %f, %f, %f\n", location.x, location.y, location.z);
@@ -525,6 +537,7 @@ public:
           _similarityGo = false;
           _pm->FindClosestPoints(glm::vec3(modelPos), time, (int) _similarityCount);
         }
+
         glm::vec4 cuttingPlane (0.0);
         if (_slicing){
           glm::vec3 up = glm::vec3(_lastWandPos[1]);
@@ -538,12 +551,26 @@ public:
         
         
         glCheckError();
+
         _pm->Draw(time, MVP, cuttingPlane );
+
         if (showFoot){
           _fmv.Draw(time, MVP);
         }
         glCheckError();
+
+        glm::mat4 p;
+        glm::mat4 m = P * V * cursorM;
+
+        glm::mat4 m2 = P * V * slideM;
+        std::cout << "cursor" << std::endl;
+        printMat4(m);
+        std::cout << "cursor" << std::endl;
+        printMat4(m2);
+        _cursor.Draw(m);
+//        _cursor.Draw(p);
         //_slide.Draw(P * V * slideM);
+
         glCheckError();
 		}
 	}
@@ -577,12 +604,16 @@ protected:
   bool iterateClusters = false;
   float time;
   Slide _slide;
+  Cursor _cursor;
   glm::mat4 _slideMat;
+  glm::mat4 _cursorMat;
   bool _movingSlide = false;
   double _similarityCount = 50;
   bool _similarityGo = false;
+
   bool _slicing = false;
   std::unique_ptr<Config> _config;
+
 };
 
 

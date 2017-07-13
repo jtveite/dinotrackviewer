@@ -69,7 +69,9 @@ public:
 	 * @param time The frame to be drawn.
 	 * @param mvp the Model-View-Projection matrix to use to draw.
 	 */
+
     void Draw(int time, glm::mat4 mvp, glm::vec4 cuttingPlane = glm::vec4(0.));
+
     /**
      * Initializes (or rereads) the shaders from disk.
      */
@@ -97,7 +99,9 @@ public:
     std::vector<float> similarities;
     SimilarityEvaluator* simEval;
     bool similarityReset = true;
+
     int similaritySeedPoint;
+
 
     bool clustering = true;
     int currentCluster = -1;
@@ -126,6 +130,7 @@ public:
     bool colorByCluster = false;
     bool colorBySimilarity = false;
     bool colorPathsBySimilarity = false;
+
 private:
     void DrawBoxes();
     void DrawPoints(int time, glm::mat4 mvp, glm::vec4 cuttingPlane);

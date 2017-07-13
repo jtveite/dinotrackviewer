@@ -3,6 +3,7 @@ project(dinotracks)
 
 set(dino_source_files
   newmain.cpp
+  cursor.cpp
   slide.cpp
   pointmanager.cpp
   vrpoint.cpp
@@ -14,7 +15,9 @@ set(dino_source_files
   webupdatereader.cpp
   SimilarityEvaluator.cpp
   PathAlignmentSimilarityEvaluator.cpp
+
   Config.cpp
+
   GLUtil.cpp
 )
 
@@ -50,6 +53,7 @@ set(header_files
   pointmanager.h
   vrpoint.h
   slide.h
+  cursor.h
   shader.h
   animationcontroller.h
   filter.h
@@ -59,6 +63,7 @@ set(header_files
   webupdatereader.h
   SimilarityEvaluator.h
   PathAlignmentSimilarityEvaluator.h
+
   Config.h
   GLUtil.h
 )
