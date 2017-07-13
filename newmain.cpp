@@ -177,7 +177,8 @@ public:
       if (_movingSlide){
         _slideMat = wandPos / _lastWandPos * _slideMat;
       }
-      _cursorMat = wandPos / _lastWandPos * _cursorMat;
+      //  _cursorMat = wandPos / _lastWandPos * _cursorMat;
+      _cursorMat = wandPos;
       _lastWandPos = wandPos;
     }
 
@@ -477,7 +478,7 @@ public:
         //in desktop mode, +x is away from camera, +z is right, +y is up 
         //M = translate * scale;
         glm::mat4 slideM = _slideMat * M;
-        glm::mat4 cursorM = _cursorMat * M;
+        glm::mat4 cursorM = _cursorMat;
 //        std::cout << "cursor" << std::endl;
 //        printMat4(cursorM);
 //        std::cout << "slide" << std::endl;
