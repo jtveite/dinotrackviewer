@@ -78,7 +78,7 @@ public:
     void SetFilter(Filter* f);
     float pointSize = 0.0004;
     int getLength();
-    std::vector<VRPoint> points;
+    std::vector<VRPoint> points; // set of VRpoints loaded
 
     void AddSeedPoint(glm::vec3 pos, int time);
     void SearchForSeeds(int target_count = 10);

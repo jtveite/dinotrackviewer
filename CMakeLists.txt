@@ -5,6 +5,7 @@ set(dino_source_files
   newmain.cpp
   cursor.cpp
   slide.cpp
+  textboard.cpp
   pointmanager.cpp
   vrpoint.cpp
   shader.cpp
@@ -51,6 +52,7 @@ set(header_files
   vrpoint.h
   slide.h
   cursor.h
+  textboard.h
   shader.h
   animationcontroller.h
   filter.h
