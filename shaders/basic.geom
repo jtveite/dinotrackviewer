@@ -56,7 +56,7 @@ void main ()
 
   //Make particles smaller if they are outside of the cutting plane.
   float planeLocation = (pos.x * cuttingPlane.x + pos.y * cuttingPlane.y + pos.z * cuttingPlane.z + cuttingPlane.w);
-  if (planeLocation > 0.0001){
+  if (abs(planeLocation) > 0.0001){
     radius = radius * .3;
   }
 

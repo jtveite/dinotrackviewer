@@ -42,7 +42,7 @@ void PointManager::ReadFile(std::string fileName, bool debug)
         linecount++;
         //if(debug){
           if (linecount % 10000 == 0){
-            printf("Currently reading line %d.\r\n", linecount); 
+            std::cout << "Currently reading line " << linecount << std::endl; 
             //ProfilerFlush();
           }
        // }
