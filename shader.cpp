@@ -86,6 +86,12 @@ void MyShader::setFloat(std::string argument, float val)
   glUniform1f(loc, val);
 }
 
+void MyShader::setVector4(std::string argument, glm::vec4 val)
+{
+  GLint loc = glGetUniformLocation(program, argument.c_str());
+  glUniform4f(loc, val.x, val.y, val.z, val.w);
+}
+
 void MyShader::bindShader(){
     int err;
     if ((err = glGetError()) != 0){

@@ -15,6 +15,9 @@ set(dino_source_files
   webupdatereader.cpp
   SimilarityEvaluator.cpp
   PathAlignmentSimilarityEvaluator.cpp
+
+  Config.cpp
+
   GLUtil.cpp
 )
 
@@ -60,6 +63,8 @@ set(header_files
   webupdatereader.h
   SimilarityEvaluator.h
   PathAlignmentSimilarityEvaluator.h
+
+  Config.h
   GLUtil.h
 )
 

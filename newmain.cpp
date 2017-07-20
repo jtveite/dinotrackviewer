@@ -35,12 +35,16 @@
 #include "footmeshviewer.h"
 #include "webupdatereader.h"
 #include "PathAlignmentSimilarityEvaluator.h"
+
+#include "Config.h"
+
 //#include "GLUtil.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/euler_angles.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "glm/ext.hpp"
 
 
 using namespace MinVR;
@@ -64,6 +68,7 @@ void printMat4(glm::mat4 m){
   }
 }
 
+
 enum struct Mode {STANDARD, ANIMATION, FILTER, SLICES, PREDICT, CLUSTER, PATHSIZE, SIMILARITY};
 
 class MyVRApp : public VREventHandler, public VRRenderHandler, public UpdateChecker {
@@ -74,6 +79,9 @@ public:
       	_vrMain->addEventHandler(this);
 		_vrMain->addRenderHandler(this);
 
+    _config = std::make_unique<Config>("active.config");
+    _config->Print();
+
     const unsigned char* s = glGetString(GL_VERSION);
     printf("GL Version %s.\n", s);
         _horizAngle = 0.0;
@@ -82,19 +90,25 @@ public:
         _incAngle = -0.1f;
     _pm = new PointManager();
     //_pm->ReadFile("data/slices-68-trimmed.out");
-    _pm->ReadFile("active-dataset.out");
+    _pm->ReadFile(_config->GetValue("Data", "active-dataset.out"));
     printf("Loaded file with %d timesteps.\n", _pm->getLength());
     std::cout << _pm->getLength() << std::endl;
     //_pm->ReadMoVMFs("paths.movm");
-    _pm->ReadClusters("active.clusters");
-    _pm->ReadPathlines("active.pathlines");
+    std::string clusterFile = _config->GetValue("Clusters", "active.clusters");
+    if (clusterFile != ""){
+      _pm->ReadClusters(clusterFile);
+    }
+    std::string pathlineFile = _config->GetValue("Pathlines", "active.pathlines");
+    if (pathlineFile != ""){
+      _pm->ReadPathlines(pathlineFile);
+    }
     _pm->colorByCluster = true;
     _pm->simEval = new PathAlignmentSimilarityEvaluator();
     ac.setFrameCount(_pm->getLength());
     ac.setSpeed(15);
     mode = Mode::STANDARD;
     _slicer = new SliceFilter();
-    _wur = new WebUpdateReader("weblog", this);
+    _wur = new WebUpdateReader(_config->GetValue("WebFile", "weblog"), this);
 	}
 
   void HandleUpdate(std::string key, std::string value){
@@ -408,8 +422,19 @@ public:
       glewInit();
       _pm->SetupDraw();
       _cursor.Initialize(1.0f);
-      _slide.Initialize("slide.png", glm::vec3(3,-3,0), glm::vec3(0,2,0), glm::vec3(0,0,1.544));
-      _fmv.ReadFiles("feet.feet");
+
+      std::string slideFile = _config->GetValue("Slide");
+      if (slideFile != ""){
+        _slide.Initialize(slideFile, glm::vec3(3,-3,0), glm::vec3(0,2,0), glm::vec3(0,0,1.544));
+      }
+      std::string feetFile = _config->GetValue("Foot", "feet.feet");
+      if (feetFile != ""){
+        _fmv.ReadFiles(feetFile);
+      }
+      std::string surfaceFile = _config->GetValue("Surface");
+      if (surfaceFile != ""){
+        _pm->ReadSurface(surfaceFile);
+      }
       first = false;
     }
     GLuint test;
@@ -512,16 +537,28 @@ public:
           _similarityGo = false;
           _pm->FindClosestPoints(glm::vec3(modelPos), time, (int) _similarityCount);
         }
+
+        glm::vec4 cuttingPlane (0.0);
+        if (_slicing){
+          glm::vec3 up = glm::vec3(_lastWandPos[1]);
+          up = glm::normalize(up);
+          glm::vec3 modelUp = glm::inverse(M) * glm::vec4(up, 0.0);
+          float offset = - glm::dot(glm::vec3(modelPos), modelUp);
+          cuttingPlane = glm::vec4(modelUp.x, modelUp.y, modelUp.z, offset);
+          std::cout << "Cutting plane: " << glm::to_string(cuttingPlane) << std::endl;
+        }
         
         
         
         glCheckError();
 
-        _pm->Draw(time, MVP );
+        _pm->Draw(time, MVP, cuttingPlane );
+
         if (showFoot){
           _fmv.Draw(time, MVP);
         }
         glCheckError();
+
         glm::mat4 p;
         glm::mat4 m = P * V * cursorM;
 
@@ -532,7 +569,8 @@ public:
         printMat4(m2);
         _cursor.Draw(m);
 //        _cursor.Draw(p);
-        _slide.Draw(P * V * slideM);
+        //_slide.Draw(P * V * slideM);
+
         glCheckError();
 		}
 	}
@@ -572,6 +610,10 @@ protected:
   bool _movingSlide = false;
   double _similarityCount = 50;
   bool _similarityGo = false;
+
+  bool _slicing = false;
+  std::unique_ptr<Config> _config;
+
 };
 
 

@@ -15,5 +15,4 @@ void main()
   float diffuse = 1. - ambient;
   color = baseColor * (ambient + diffuse * lambertian);
   //color = abs(vec4(normal, 1.0));
-
 }

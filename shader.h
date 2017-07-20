@@ -73,11 +73,14 @@ public:
    * @param val The float value to be set.
    */
   void setFloat(std::string argument, float val);
+  
   /**
    * Loads a texture into OpenGL for this shader.
    * @param argument The name of the variable for which to set the texture.
    * @param fileName The name of the file to load the texture from.
    */
+  void setVector4(std::string argument, glm::vec4 val);
+
   void loadTexture(std::string argument, std::string fileName);
 
   /**

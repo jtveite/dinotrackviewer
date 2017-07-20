@@ -105,6 +105,10 @@ void FootMeshViewer::Draw(int time, glm::mat4 mvp){
   if (!active){
     return;
   }
+  if (time < 0 || time >= bufferIds.size()){
+    return;
+  }
+
   glCheckError();
   shader->bindShader();
   glCheckError();
