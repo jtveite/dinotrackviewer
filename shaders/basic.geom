@@ -2,6 +2,7 @@
 layout(points) in;
 layout(triangle_strip, max_vertices=85) out;
 in vec2 vertexColor[];
+in vec4 vertexOrig[];
 in float vertexCluster[];
 in float vertexSimilarity[];
 
@@ -18,6 +19,7 @@ uniform float numClusters;
 uniform float maxDistance = -1;
 
 uniform vec4 cuttingPlane; //represented as ax + by + cz + d = 0, values >0 culled
+uniform float cutOnOriginal = -1;
 
 
 //float rad = 0.002;
@@ -33,6 +35,7 @@ vec4 transform(vec4 i){
 void main ()
 { 
   vec4 pos = gl_in[0].gl_Position;
+  vec4 origPos = vertexOrig[0];
   float layers_gap = 30;
   float around_gap = 60;
   float tgap = radians(around_gap);
@@ -56,6 +59,9 @@ void main ()
 
   //Make particles smaller if they are outside of the cutting plane.
   float planeLocation = (pos.x * cuttingPlane.x + pos.y * cuttingPlane.y + pos.z * cuttingPlane.z + cuttingPlane.w);
+  if (cutOnOriginal > 0){ // by convention set to -1 for false or 1 for true
+    planeLocation = (origPos.x * cuttingPlane.x + origPos.y * cuttingPlane.y + origPos.z * cuttingPlane.z + cuttingPlane.w);
+  }
   if (abs(planeLocation) > 0.0001){
     radius = radius * .3;
   }

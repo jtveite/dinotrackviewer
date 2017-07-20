@@ -219,6 +219,9 @@ public:
       //mode = Mode::ANIMATION;
       //mode = Mode::PATHSIZE;
       _pm->colorByCluster = ! _pm->colorByCluster;
+      if(_slicing){
+        _pm->cutOnOriginal = !_pm->cutOnOriginal;
+      }
       std::cout << _pm->colorByCluster << std::endl;
     }
     else if (eventName == "/Kbd3_Down" || eventName == "/Mouse_Left_Down"){

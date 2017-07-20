@@ -591,15 +591,17 @@ void PointManager::DrawPoints(int time, glm::mat4 mvp, glm::vec4 cuttingPlane){
     //set vertex attributes
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
     glCheckError();
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(Vertex), NULL);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) sizeof(glm::vec3));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*) (sizeof(glm::vec3) + sizeof(glm::vec2)));
  
  
     if (colorByCluster){
       glBindBuffer(GL_ARRAY_BUFFER, particleClusterBuffer);
-      glEnableVertexAttribArray(2);
-      glVertexAttribPointer(2, 1, GL_INT, GL_FALSE, 0, 0);
+      glEnableVertexAttribArray(3);
+      glVertexAttribPointer(3, 1, GL_INT, GL_FALSE, 0, 0);
       pointShader->setFloat("numClusters", clusters.size());
       glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -609,8 +611,8 @@ void PointManager::DrawPoints(int time, glm::mat4 mvp, glm::vec4 cuttingPlane){
     }
     if (colorBySimilarity){
       glBindBuffer(GL_ARRAY_BUFFER, particleSimilarityBuffer);
-      glEnableVertexAttribArray(3);
-      glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 0, 0);
+      glEnableVertexAttribArray(4);
+      glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, 0, 0);
       pointShader->setFloat("maxDistance", maxSimilarityDistance);
       pointShader->setFloat("clusterDistance", midSimilarityDistance);
       glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -618,6 +620,12 @@ void PointManager::DrawPoints(int time, glm::mat4 mvp, glm::vec4 cuttingPlane){
     else{
       pointShader->setFloat("maxDistance", -1.0);
       pointShader->setFloat("clusterDistance", -1.0);
+    }
+    if (cutOnOriginal){
+      pointShader->setFloat("cutOnOriginal", 1.0);
+    }
+    else{
+      pointShader->setFloat("cutOnOriginal", -1.0);
     }
 
     
