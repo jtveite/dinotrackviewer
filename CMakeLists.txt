@@ -71,6 +71,7 @@ set(header_files
 )
 
 set(resource_files
+  numbers.png
   colormap.jpg
   pathmap.jpg
   desktop.xml
