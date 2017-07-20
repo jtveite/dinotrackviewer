@@ -344,6 +344,7 @@ public:
       }
       else if (mode == Mode::SIMILARITY){
         _similarityGo = true;
+        mode = Mode::STANDARD;
       }
       else{
         ac.stepBackward();
