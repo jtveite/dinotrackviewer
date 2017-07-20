@@ -105,7 +105,16 @@ public:
     }
     _pm->colorByCluster = true;
     _pm->simEval = new PathAlignmentSimilarityEvaluator();
-    ac.setFrameCount(_pm->getLength()); // set the frame count to number of timesteps
+
+    std::string similarityThreshold = _config->GetValue("SimilarityThreshold", "0.007");
+    float threshold = std::stod(similarityThreshold);
+    _pm->simEval->threshold = threshold;
+    
+    std::string scaleSizeString = _config->GetValue("Scale", "10");
+    float MetersPerFoot = 1; //Figure out yurt units and correct some other day...
+    _scale = std::stod(scaleSizeString) * MetersPerFoot;
+
+    ac.setFrameCount(_pm->getLength());
     ac.setSpeed(15);
     mode = Mode::STANDARD;
     _slicer = new SliceFilter();
@@ -209,6 +218,9 @@ public:
       //mode = Mode::ANIMATION;
       //mode = Mode::PATHSIZE;
       _pm->colorByCluster = ! _pm->colorByCluster;
+      if(_slicing){
+        _pm->cutOnOriginal = !_pm->cutOnOriginal;
+      }
       std::cout << _pm->colorByCluster << std::endl;
     }
     else if (eventName == "/Kbd3_Down" || eventName == "/Mouse_Left_Down"){
@@ -218,7 +230,7 @@ public:
       _pm->ResetPrediction();
       _pm->clustering = false;
       _pm->currentCluster = -1;
-      _pm->colorBySimilarity = false;
+      //_pm->colorBySimilarity = false;
     }
     else if (eventName == "/Kbd4_Down" || eventName == "/Mouse_Right_Down"){
       mode = Mode::SIMILARITY;
@@ -231,8 +243,12 @@ public:
       _pm->SetShaders();
 
     }
+    else if (eventName == "/Mouse_Left_Click_Down"){
+      _pm->showSurface = !_pm->showSurface;
+    }
     else if (eventName == "/Kbd6_Down" || eventName == "/Mouse_Right_Click_Down"){
-      _pm->colorPathsBySimilarity = !_pm->colorPathsBySimilarity;
+      //_pm->colorPathsBySimilarity = !_pm->colorPathsBySimilarity;
+      _slicing = !_slicing;
     }
 
     else if (eventName == "/MouseBtnLeft_Down" || eventName == "/Wand_Bottom_Trigger_Down"){
@@ -330,6 +346,7 @@ public:
       }
       else if (mode == Mode::SIMILARITY){
         _similarityGo = true;
+        mode = Mode::STANDARD;
       }
       else{
         ac.stepBackward();
@@ -342,6 +359,9 @@ public:
       }
       else if (mode == Mode::PATHSIZE){
         _pm->pathlineMax += 0.04; 
+      }
+      else if (mode == Mode::SIMILARITY){
+        _pm->colorPathsBySimilarity = !_pm->colorPathsBySimilarity;
       }
       else{
         ac.stepForward();
@@ -494,7 +514,7 @@ public:
          
        }
 
-        glm::mat4 scale = glm::scale(glm::mat4(), glm::vec3(40,40,40));
+        glm::mat4 scale = glm::scale(glm::mat4(), glm::vec3(_scale, _scale, _scale));
         glm::mat4 translate = glm::translate(glm::mat4(), glm::vec3(1, -1, 0));
          
 
@@ -612,7 +632,7 @@ protected:
 
   bool _slicing = false;
   std::unique_ptr<Config> _config;
-
+  float _scale = 40;
 };
 
 

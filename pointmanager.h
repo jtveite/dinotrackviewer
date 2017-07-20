@@ -129,6 +129,7 @@ public:
     bool colorByCluster = false;
     bool colorBySimilarity = false;
     bool colorPathsBySimilarity = false;
+    bool cutOnOriginal = true; ///<Sets whether the slicing plane should work from starting frame positions (true) or current frame (false).
 
 private:
     void DrawBoxes();

@@ -18,9 +18,10 @@ Vertex VRPoint::Draw(int time, glm::vec3 minV, glm::vec3 maxV)
    // printf("Drawing point at %f, %f, %f.\r", p.x, p.y, p.z);
     //Sphere s (p, 1e-4);
     //Draw::sphere(s, rd);
+    glm::vec3 op = positions[0];
  
     //rd->sendVertex(p);
-    return Vertex(p, GetColor(time, minV, maxV));
+    return Vertex(p, GetColor(time, minV, maxV), op);
 }
 
 
