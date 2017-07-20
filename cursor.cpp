@@ -9,9 +9,9 @@ void Cursor::Initialize(float length){
   shader->checkErrors();
 
   for (int k=0;k<=360;k+= 30){
-    verts.push_back(glm::vec3(0.0f,1.0f,0.0f));
-    verts.push_back(glm::vec3(0.1* cos(k),0.0f, 0.1*sin(k)));
-    verts.push_back(glm::vec3(0.1* cos(k+30),0.0f, 0.1*sin(k+30)));
+    verts.push_back(glm::vec3(0.0f,0.0f,-1.0f));
+    verts.push_back(glm::vec3(0.1* cos(k), 0.1*sin(k), 0.0f));
+    verts.push_back(glm::vec3(0.1* cos(k+30), 0.1*sin(k+30), 0.0f));
   }
 
 //  verts.push_back(glm::vec3(0.0f, len, 0.0f));
