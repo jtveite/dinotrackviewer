@@ -10,6 +10,6 @@ uniform vec3 mode;
 void main()
 {
     gl_Position = mvp * vec4(VertexPosition, 1.0);
-    Color = vec3(1.0, 0.0, 0.0);
+    Color = vec3(0.8, 0.8, 0.8);
 }
 

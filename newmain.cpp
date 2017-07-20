@@ -440,7 +440,8 @@ public:
       glewInit();
       _pm->SetupDraw();
       _cursor.Initialize(1.0f);
-      _board.Initialize("numbers.png", glm::vec3(2,-2,0), glm::vec3(0, 0,-0.55 *5), glm::vec3(0,0.65*5,0));
+    //  _board.Initialize("numbers.png", glm::vec3(2,-2,0), glm::vec3(0, 0,-0.55*2), glm::vec3(0,0.65*2,0));
+      _board.Initialize("numbers.png", glm::vec3(-5,2,-3), glm::vec3(0.55*0.7, 0, 0), glm::vec3(0,0.65*0.7, 0));
       std::string slideFile = _config->GetValue("Slide");
       if (slideFile != ""){
         _slide.Initialize(slideFile, glm::vec3(3,-3,0), glm::vec3(0,2,0), glm::vec3(0,0,1.544));
