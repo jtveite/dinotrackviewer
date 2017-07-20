@@ -24,10 +24,10 @@ public:
     bool withinDistance(VRPoint& other, double distance);
 
     std::vector<Vertex> getPathlineVerts(bool useHardY = false, float hardYPos = 0.0);
-    std::vector<glm::vec3> positions;
+    std::vector<glm::vec3> positions; //vector of positions the particle takes in its path
 
     int steps();
-    int m_id;
+    int m_id; // id number to identify each particle
 private:
     glm::vec2 getColor(int);
     glm::vec4 GetColorHorizontalPosition();

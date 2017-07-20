@@ -27,6 +27,7 @@
 
 #include "slide.h"
 #include "cursor.h"
+#include "textboard.h"
 #include "vrpoint.h"
 #include "vertex.h"
 #include "filter.h"
@@ -88,7 +89,7 @@ public:
         _vertAngle = 0.0;
 		_radius =  4.0;
         _incAngle = -0.1f;
-    _pm = new PointManager();
+    _pm = new PointManager(); //initializes a point manager
     //_pm->ReadFile("data/slices-68-trimmed.out");
     _pm->ReadFile(_config->GetValue("Data", "active-dataset.out"));
     printf("Loaded file with %d timesteps.\n", _pm->getLength());
@@ -104,7 +105,7 @@ public:
     }
     _pm->colorByCluster = true;
     _pm->simEval = new PathAlignmentSimilarityEvaluator();
-    ac.setFrameCount(_pm->getLength());
+    ac.setFrameCount(_pm->getLength()); // set the frame count to number of timesteps
     ac.setSpeed(15);
     mode = Mode::STANDARD;
     _slicer = new SliceFilter();
@@ -181,17 +182,15 @@ public:
 		std::cout << "Event: " << eventName << std::endl;
     }
 
-    if (eventName == "/Wand_Move"){
-      VRMatrix4 wandPosition = eventData->getValue("/Wand_Move/Transform");
-      glm::mat4 wandPos = glm::make_mat4(wandPosition.m);
-      //printMat4(wandPos);
+    if (eventName == "/Wand_Move"){ //Set up for Wand Movement
+      VRMatrix4 wandPosition = eventData->getValue("/Wand_Move/Transform"); //VRMatrix for the wand position
+      glm::mat4 wandPos = glm::make_mat4(wandPosition.m); //convert to 4 matrix
       if(_moving){
-        _owm = wandPos / _lastWandPos * _owm;
+        _owm = wandPos / _lastWandPos * _owm; // update the model matrix for the data points
       }
-      if (_movingSlide){
-        _slideMat = wandPos / _lastWandPos * _slideMat;
+      if (_movingSlide){ //when slide moving
+        _slideMat = wandPos / _lastWandPos * _slideMat; //update the model matrix for slide
       }
-      //  _cursorMat = wandPos / _lastWandPos * _cursorMat;
       _cursorMat = wandPos;
       _lastWandPos = wandPos;
     }
@@ -200,7 +199,6 @@ public:
       std::cout << "Test" << std::endl;
       std::cout << eventData->printStructure() << std::endl;
     }
-
 
     if (eventName == "/Kbd1_Down" || eventName == "/Mouse_Up_Down"){
       mode = Mode::STANDARD;
@@ -252,7 +250,7 @@ public:
     else if (eventName == "/KbdQ_Down" || eventName == "/Wand_Trigger_Top_Change"){
       _placePathline = true;
       }
-         else if (eventName == "/KbdDown_Down" || eventName == "/Wand_Down_Down"){
+    else if (eventName == "/KbdDown_Down" || eventName == "/Wand_Down_Down"){
       if (mode == Mode::STANDARD){
         _pm->pointSize /= 1.3;
       }
@@ -369,7 +367,7 @@ public:
     }
 
 
-		if (eventName == "/KbdEsc_Down") {
+        if (eventName == "/KbdEsc_Down") {
 			_quit = true;
 		}
         else if (eventName == "/MouseBtnLeft_Down") {
@@ -403,7 +401,7 @@ public:
         if (!renderState->exists("IsConsole", "/")) {
         }
         _wur->checkForUpdates();
-        time = ac.getFrame();
+        time = ac.getFrame(); //update time frame
     }
 
 	int count;
@@ -417,12 +415,12 @@ public:
 		}
 		else {
 
-    if (first){
+    if (first){ //setting up
       glewExperimental = GL_TRUE;
       glewInit();
       _pm->SetupDraw();
       _cursor.Initialize(1.0f);
-
+      _board.Initialize("numbers.png", glm::vec3(2,-2,0), glm::vec3(0, 0,-0.55 *5), glm::vec3(0,0.65*5,0));
       std::string slideFile = _config->GetValue("Slide");
       if (slideFile != ""){
         _slide.Initialize(slideFile, glm::vec3(3,-3,0), glm::vec3(0,2,0), glm::vec3(0,0,1.544));
@@ -516,11 +514,17 @@ public:
 	glm::mat4 newWandPos =  glm::translate(_lastWandPos, glm::vec3(0.0f, 0.0f, -1.0f)); 
         glm::vec3 location = glm::vec3(newWandPos[3]);
         glm::vec4 modelPos = glm::inverse(M) * glm::vec4(location, 1.0);
-        _pm->TempPathline(glm::vec3(modelPos), time);
+        int id = _pm->TempPathline(glm::vec3(modelPos), time);
             /*printf("World space location: %f, %f, %f\n", location.x, location.y, location.z);
             printf("Model space location: %f, %f, %f\n", modelPos.x, modelPos.y, modelPos.z);
             printMat4(glm::inverse(M));
             printMat4(M);*/
+        _board.LoadID(id);
+         _board.LoadNumber(_similarityCount);
+        if(mode == Mode::SIMILARITY){
+            _board.LoadID(id);
+            _board.LoadNumber(_similarityCount);
+        }
         if (_placePathline){
             _placePathline = false;
             if (mode == Mode::PREDICT){
@@ -561,16 +565,10 @@ public:
 
         glm::mat4 p;
         glm::mat4 m = P * V * cursorM;
-
-        glm::mat4 m2 = P * V * slideM;
-        std::cout << "cursor" << std::endl;
-        printMat4(m);
-        std::cout << "cursor" << std::endl;
-        printMat4(m2);
+        _board.Draw(P * V * slideM);
         _cursor.Draw(m);
 //        _cursor.Draw(p);
         //_slide.Draw(P * V * slideM);
-
         glCheckError();
 		}
 	}
@@ -604,6 +602,7 @@ protected:
   bool iterateClusters = false;
   float time;
   Slide _slide;
+  Textboard _board;
   Cursor _cursor;
   glm::mat4 _slideMat;
   glm::mat4 _cursorMat;

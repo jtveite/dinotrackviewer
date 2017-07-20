@@ -79,7 +79,7 @@ public:
     void AddPathline(glm::vec3 pos, int time);
     void AddPathline(VRPoint& point, float fixedY = -1.0);
     void ClearPathlines();
-    void TempPathline(glm::vec3 pos, int time);
+    int TempPathline(glm::vec3 pos, int time);
     void ReadSurface(std::string fileName);
 
 
@@ -88,7 +88,6 @@ public:
     int getLength();
     std::vector<VRPoint> points;
     bool showSurface = true;
-
     void AddSeedPoint(glm::vec3 pos, int time);
     void SearchForSeeds(int target_count = 10);
     void ResetPrediction();
