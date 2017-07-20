@@ -21,6 +21,7 @@ PointManager::PointManager()
 
 }
 
+
 void PointManager::ReadFile(std::string fileName, bool debug)
 {
     
@@ -28,7 +29,7 @@ void PointManager::ReadFile(std::string fileName, bool debug)
       std::cout << "Reading file: " << fileName << std::endl;
     }
 
-    clock_t startTime = clock();
+    clock_t startTime = clock(); //initialize clock
     std::ios_base::sync_with_stdio(false);
     std::fstream file;
     std::string line;
@@ -52,6 +53,7 @@ void PointManager::ReadFile(std::string fileName, bool debug)
         if (iss.peek() == 'B'){
           std::string c;
           iss >> c;
+          std::cout << "string" << std::endl;
           //Reading in a box coords
           iss >> x >> y >> z;
           glm::vec3 lower(x,y,z);
@@ -63,29 +65,32 @@ void PointManager::ReadFile(std::string fileName, bool debug)
           //boxes.push_back(box);
           continue;
         }
-        iss >> id;
-        VRPoint p (id);
+        iss >> id; //extract id number of each data line
+        VRPoint p (id); //create new VRPoint
+        printf("id: %i", id);
+
         /*
         while (iss >> x >> y >> z){
             p.AddPoint(glm::vec3(x,y,z));
         }
 */
-      
+
         iss.get();//Clear the leading space left over from grabbing the first one
         char token[20];
-        float arr[3];
+        float arr[3]; //array to hold a x,y,z position
         int idx = 0;
-        while(!(iss.eof())){
+        while(!(iss.eof())){ // if the end of file is not reached
           iss.getline(token, 20, ' ');
-          arr[idx] = atof(token);
+          arr[idx] = atof(token); //convert to double
           idx++;
-          if(idx == 3){
+          if(idx == 3){ //array is filled up
             idx = 0;
-            p.AddPoint(glm::vec3(arr[0], arr[1], arr[2]));
+            p.AddPoint(glm::vec3(arr[0], arr[1], arr[2])); //add position to VRpoint
           }
         }
         points.push_back(p);
         
+
     }
     printf("Time after reading points: %f\n", ((float)(clock() - startTime)) / CLOCKS_PER_SEC);
 
@@ -95,15 +100,12 @@ void PointManager::ReadFile(std::string fileName, bool debug)
     maxV = minV;
     for(int i = 0; i < points.size(); i++){
       //timeSteps = max(timeSteps, points[i].steps());  
-      if (points[i].steps() > timeSteps){
-        timeSteps = points[i].steps();
+      if (points[i].steps() > timeSteps){ //if the point has more timesteps
+        timeSteps = points[i].steps(); //update the number of timesteps
       }
-      minV = glm::min(minV, points[i].positions[0]);
-      maxV = glm::max(maxV, points[i].positions[0]);
+      minV = glm::min(minV, points[i].positions[0]); //update the minimum starting position
+      maxV = glm::max(maxV, points[i].positions[0]); //update the maximum starting position
     }
-    
-
-
 }
 
 void PointManager::SetupDraw(bool allPaths){
@@ -274,10 +276,11 @@ int PointManager::FindPathline(glm::vec3 pos, int time, float minDist){
   return bestID;
 } 
 
-void PointManager::TempPathline(glm::vec3 pos, int time){
+int PointManager::TempPathline(glm::vec3 pos, int time){
   int bestID = FindPathline(pos, time);
   VRPoint& point = points[bestID];
   tempPath = point.getPathlineVerts();
+  return point.m_id;
 }
 
 void PointManager::AddPathline(glm::vec3 pos, int time){

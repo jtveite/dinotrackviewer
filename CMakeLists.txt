@@ -5,6 +5,7 @@ set(dino_source_files
   newmain.cpp
   cursor.cpp
   slide.cpp
+  textboard.cpp
   pointmanager.cpp
   vrpoint.cpp
   shader.cpp
@@ -54,6 +55,7 @@ set(header_files
   vrpoint.h
   slide.h
   cursor.h
+  textboard.h
   shader.h
   animationcontroller.h
   filter.h
@@ -69,13 +71,18 @@ set(header_files
 )
 
 set(resource_files
+  numbers.png
   colormap.jpg
   pathmap.jpg
   desktop.xml
 )
 
-set (MINVR_ROOT /Users/jtveite/research/minvr/test CACHE STRING "Root
+set (MINVR_ROOT /users/jryoo/Desktop/ccv/MinVR CACHE STRING "Root
 directory for MinVR")
+
+#set(CMAKE_CXX_FLAGS -std=gnu++0x)
+set(CMAKE_CXX_FLAGS -std=c++14)
+#add_definitions(-std=c++14)
 
 find_package(Doxygen)
 
@@ -108,7 +115,9 @@ file(COPY data/active-dataset.out DESTINATION ${CMAKE_BINARY_DIR}/bin)
 set_source_files_properties(vertex.h GLUtil.h PROPERTIES HEADER_FILE_ONLY TRUE)
 
 find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
+#find_package(GLEW REQUIRED)
+set (GLEW_INCLUDE_DIRS /gpfs/runtime/opt/glew/1.13.0/include)
+set (GLEW_LIBRARIES /gpfs/runtime/opt/glew/1.13.0/lib64/libGLEW.so)
 
 include_directories(${OPENGL_INCLUDE_DIR})
 include_directories(${GLEW_INCLUDE_DIRS})
@@ -122,6 +131,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 add_executable(dino ${dino_source_files})
 add_executable(path-filter ${filter_source_files})
 add_executable(sim-test ${test_source_files})
+
+#add_definitions(-std=c++14)
 
 target_compile_definitions(sim-test PRIVATE TESTING)
 
